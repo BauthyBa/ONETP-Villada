@@ -1,13 +1,24 @@
 import os
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
+from pydantic import AnyHttpUrl, PostgresDsn, validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me-in-production")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    
+    @validator("SECRET_KEY", pre=True)
+    def validate_secret_key(cls, v: str) -> str:
+        if not v:
+            raise ValueError("SECRET_KEY environment variable is required")
+        if len(v) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long")
+        if v == "change-me-in-production":
+            raise ValueError("SECRET_KEY must be changed from default value")
+        return v
     
     # Database
     DATABASE_URL: Optional[PostgresDsn] = None
