@@ -1,34 +1,50 @@
-from pydantic_settings import BaseSettings
-from typing import Optional
+import os
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
+
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Tour Packages API"
-    VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me-in-production")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "tourpackages"
-    POSTGRES_PASSWORD: str = "tourpackages123"
-    POSTGRES_DB: str = "tourpackages_db"
+    # Database
+    DATABASE_URL: Optional[PostgresDsn] = None
 
-    def get_database_url(self) -> str:
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+    @validator("DATABASE_URL", pre=True)
+    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        if isinstance(v, str):
+            return v
+        # Fallback for local development
+        return "postgresql://postgres:postgres@localhost:5432/tour_packages_db"
 
-    # JWT
-    SECRET_KEY: str = "your-secret-key-here-change-in-production"
+    # CORS - Allow common origins for development and production
+    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+
+    @validator("BACKEND_CORS_ORIGINS", pre=True)
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",")]
+        elif isinstance(v, (list, str)):
+            return v
+        # Default CORS origins for development and production
+        return [
+            "http://localhost:3000",
+            "http://localhost:8000", 
+            "https://localhost:3000",
+            "https://localhost:8000",
+            # Add your Vercel domains here when deployed
+        ]
+
+    PROJECT_NAME: str = "Tour Packages API - ONIET 2025"
+    
+    # Algorithm for JWT
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-
-    # Email - SendGrid
-    SENDGRID_API_KEY: Optional[str] = None
-    EMAILS_FROM_EMAIL: str = "noreply@tourpackages.com"
-    EMAILS_FROM_NAME: str = "Tour Packages - Olimpíada ETP 2025"
-    
-    # Email templates
-    EMAILS_ENABLED: bool = True
 
     class Config:
         case_sensitive = True
         env_file = ".env"
+
 
 settings = Settings() 
