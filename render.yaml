@@ -12,7 +12,7 @@ services:
           name: tour-packages-db
           property: connectionString
       - key: SECRET_KEY
-        generateValue: true
+        value: "Q_-hxAwhb9gZ6Z8BW2giK_XFd01dvKgggAFvBFj2dhg"
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "30"
       - key: PYTHON_VERSION

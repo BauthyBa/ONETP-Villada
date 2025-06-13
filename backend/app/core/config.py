@@ -21,14 +21,21 @@ class Settings(BaseSettings):
         return v
     
     # Database
-    DATABASE_URL: Optional[PostgresDsn] = None
+    DATABASE_URL: Optional[str] = None
 
     @validator("DATABASE_URL", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
+        if isinstance(v, str) and v:
+            # Print the DATABASE_URL for debugging (remove sensitive info)
+            print(f"DATABASE_URL detected: {v[:20]}...")
+            # Validate that it's a proper PostgreSQL URL
+            if not v.startswith("postgresql://") and not v.startswith("postgres://"):
+                raise ValueError(f"DATABASE_URL must start with postgresql:// or postgres://, got: {v[:50]}...")
             return v
         # Fallback for local development
-        return "postgresql://postgres:postgres@localhost:5432/tour_packages_db"
+        fallback_url = "postgresql://postgres:postgres@localhost:5432/tour_packages_db"
+        print(f"Using fallback DATABASE_URL for local development")
+        return fallback_url
 
     # CORS - Allow common origins for development and production
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
