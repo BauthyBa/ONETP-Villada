@@ -1,127 +1,130 @@
-# 🚀 Deploy en Render - Tour Packages ONIET 2025
+# Guía de Despliegue en Render
 
-## 📋 **Pasos para Deploy del Backend en Render**
+Este documento explica cómo desplegar el proyecto ONETP en Render.
 
-### **Paso 1: Crear cuenta en Render**
-1. Ve a [render.com](https://render.com)
-2. Sign up con GitHub
-3. Conecta tu cuenta de GitHub
+## Requisitos Previos
 
-### **Paso 2: Crear la Base de Datos PostgreSQL**
-1. En Render Dashboard, click **"New +"**
-2. Selecciona **"PostgreSQL"**
-3. Configuración:
-   - **Name**: `tour-packages-db`
-   - **Database**: `tour_packages_db`
-   - **User**: `tourpackages`
-   - **Plan**: Free
-4. Click **"Create Database"**
-5. **Guarda la URL de conexión** (la necesitarás)
+1. Una cuenta en [Render](https://render.com)
+2. Git instalado en tu computadora
+3. El proyecto subido a un repositorio de GitHub
 
-### **Paso 3: Deploy del Backend (Web Service)**
-1. Click **"New +"** → **"Web Service"**
-2. **Connect Repository**: Selecciona `BauthyBa/ONETP-Villada`
-3. Configuración del servicio:
-   - **Name**: `tour-packages-api`
-   - **Environment**: `Python 3`
-   - **Build Command**: `cd backend && pip install -r requirements.txt`
-   - **Start Command**: `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-   - **Plan**: Free
+## Pasos para el Despliegue
 
-### **Paso 4: Variables de Entorno**
-En la sección **Environment Variables** agrega:
+### 1. Preparar el Repositorio
 
-```env
-DATABASE_URL=postgresql://tourpackages:password@host:5432/tour_packages_db
-SECRET_KEY=tu_clave_secreta_super_segura_para_produccion_oniet_2025
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-PYTHON_VERSION=3.10.14
-```
+1. Asegúrate de que tu proyecto esté en un repositorio de GitHub
+2. Verifica que el archivo `render.yaml` esté en la raíz del proyecto
+3. Asegúrate de que el archivo `.gitignore` incluya:
+   ```
+   venv/
+   __pycache__/
+   .env
+   node_modules/
+   build/
+   ```
 
-**⚠️ Importante**: Reemplaza `DATABASE_URL` con la URL real de tu base de datos PostgreSQL de Render.
+### 2. Configurar la Base de Datos
 
-### **Paso 5: Deploy**
-1. Click **"Create Web Service"**
-2. Render automáticamente:
-   - Clonará tu repositorio
-   - Instalará las dependencias
-   - Iniciará tu API
-3. El proceso toma **3-5 minutos**
+1. En Render, ve a "New +" y selecciona "PostgreSQL"
+2. Configura la base de datos:
+   - Nombre: `onetp-db-villada`
+   - Usuario: `onetp_user`
+   - Contraseña: (genera una segura)
+3. Guarda la URL de conexión que te proporciona Render
 
----
+### 3. Desplegar el Backend
 
-## 🌐 **URLs que obtienes**
+1. En Render, ve a "New +" y selecciona "Web Service"
+2. Conecta tu repositorio de GitHub
+3. Configura el servicio:
+   - Nombre: `onetp-backend-villada`
+   - Entorno: `Python`
+   - Rama: `main`
+   - Comando de construcción: 
+     ```bash
+     cd backend
+     python -m venv venv
+     . venv/bin/activate
+     pip install -r requirements.txt
+     ```
+   - Comando de inicio:
+     ```bash
+     cd backend
+     . venv/bin/activate
+     uvicorn app.main:app --host 0.0.0.0 --port $PORT
+     ```
+4. Agrega las variables de entorno:
+   - `DATABASE_URL`: (la URL de tu base de datos PostgreSQL)
+   - `SECRET_KEY`: (genera una clave secreta)
+   - `ALGORITHM`: `HS256`
+   - `ACCESS_TOKEN_EXPIRE_MINUTES`: `30`
 
-- **API**: `https://tour-packages-api.onrender.com`
-- **Docs**: `https://tour-packages-api.onrender.com/docs`
-- **Health**: `https://tour-packages-api.onrender.com/health`
+### 4. Desplegar el Frontend
 
----
+1. En Render, ve a "New +" y selecciona "Web Service"
+2. Conecta tu repositorio de GitHub
+3. Configura el servicio:
+   - Nombre: `onetp-frontend-villada`
+   - Entorno: `Node`
+   - Rama: `main`
+   - Comando de construcción:
+     ```bash
+     cd frontend
+     npm install
+     npm run build
+     ```
+   - Comando de inicio:
+     ```bash
+     cd frontend && npm start
+     ```
+4. Agrega las variables de entorno:
+   - `REACT_APP_API_URL`: `https://onetp-backend-villada.onrender.com`
 
-## 🎨 **Conectar Frontend (Vercel) con Backend (Render)**
+### 5. Verificar el Despliegue
 
-### En Vercel, actualiza la variable de entorno:
-```env
-REACT_APP_API_URL=https://tour-packages-api.onrender.com
-```
+1. Espera a que ambos servicios estén desplegados (esto puede tomar unos minutos)
+2. Verifica que el backend esté funcionando visitando:
+   - `https://onetp-backend-villada.onrender.com/docs`
+3. Verifica que el frontend esté funcionando visitando:
+   - `https://onetp-frontend-villada.onrender.com`
 
-### En Render, actualiza CORS en `backend/app/main.py`:
-```python
-origins = [
-    "http://localhost:3000",
-    "https://your-app.vercel.app",  # Tu URL de Vercel
-    "https://tour-packages-api.onrender.com"
-]
-```
+## Solución de Problemas
 
----
+### Backend no inicia
+1. Verifica los logs en Render
+2. Asegúrate de que todas las variables de entorno estén configuradas
+3. Verifica que la base de datos esté accesible
 
-## 🔧 **Configuración de Auto-Deploy**
+### Frontend no se conecta al backend
+1. Verifica que la variable `REACT_APP_API_URL` esté correctamente configurada
+2. Asegúrate de que el backend esté funcionando
+3. Verifica los logs del frontend en Render
 
-Render automáticamente re-deployará cuando hagas push a la rama `main`:
+### Problemas con la base de datos
+1. Verifica que la URL de la base de datos sea correcta
+2. Asegúrate de que la base de datos esté activa
+3. Verifica los logs de la base de datos en Render
 
-1. Haces cambios en tu código
-2. `git push origin main`
-3. Render detecta el cambio
-4. Re-construye y deploya automáticamente
+## Mantenimiento
 
----
+### Actualizaciones
+1. Haz push de tus cambios a GitHub
+2. Render detectará automáticamente los cambios
+3. Los servicios se actualizarán automáticamente
 
-## 🐛 **Troubleshooting**
+### Monitoreo
+1. Usa el dashboard de Render para monitorear:
+   - Uso de recursos
+   - Logs
+   - Estado de los servicios
 
-### **Error: "Application failed to start"**
-- Verifica que `requirements.txt` esté en `/backend`
-- Verifica que el Start Command sea correcto
-- Revisa los logs en Render
+### Backups
+1. La base de datos se respalda automáticamente
+2. Puedes configurar backups adicionales en Render
 
-### **Error de Base de Datos**
-- Verifica que `DATABASE_URL` esté correcta
-- Asegúrate de que la base de datos esté en "Available" status
+## Soporte
 
-### **Error de CORS**
-- Agrega tu dominio de Vercel a la lista de origins
-- Verifica que no haya trailing slashes
-
----
-
-## ✅ **Ventajas de Render**
-
-- ✅ **Free tier generoso**: 750 horas/mes gratis
-- ✅ **Auto-deploy**: Deploy automático en cada push
-- ✅ **PostgreSQL gratis**: Base de datos incluida
-- ✅ **SSL automático**: HTTPS configurado automáticamente
-- ✅ **Logs en tiempo real**: Debug fácil
-- ✅ **Fácil de usar**: Interfaz muy intuitiva
-
----
-
-## 🎯 **Arquitectura Final**
-
-```
-Frontend (Vercel) → Backend (Render) → PostgreSQL (Render)
-     ↓                    ↓                 ↓
-https://tu-app       https://api          Database
-.vercel.app         .onrender.com        (Managed)
-```
-
-¡Tu aplicación estará completamente en la nube! 🌥️ 
+Si encuentras problemas:
+1. Revisa los logs en Render
+2. Consulta la [documentación de Render](https://render.com/docs)
+3. Contacta al soporte de Render si es necesario 

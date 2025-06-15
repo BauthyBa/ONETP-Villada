@@ -1,25 +1,36 @@
 services:
   # Backend API
   - type: web
-    name: tour-packages-api
+    name: onetp-backend
     env: python
-    buildCommand: "cd backend && pip install -r requirements.txt"
-    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
-    plan: free
+    buildCommand: |
+      cd backend
+      python -m venv venv
+      . venv/bin/activate
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend
+      . venv/bin/activate
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: tour-packages-db
-          property: connectionString
+        sync: false
       - key: SECRET_KEY
-        value: "Q_-hxAwhb9gZ6Z8BW2giK_XFd01dvKgggAFvBFj2dhg"
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: "30"
-      - key: PYTHON_VERSION
-        value: "3.10.0"
+        value: 30
 
-databases:
-  - name: tour-packages-db
-    databaseName: tour_packages_db
-    user: tourpackages
-    plan: free 
+  # Frontend
+  - type: web
+    name: onetp-frontend
+    env: node
+    buildCommand: |
+      cd frontend
+      npm install
+      npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://onetp-backend.onrender.com 
