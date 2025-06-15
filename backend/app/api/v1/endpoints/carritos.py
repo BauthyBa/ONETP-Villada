@@ -50,14 +50,23 @@ def read_carrito_activo(
     current_user: models.Usuario = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Get active shopping cart.
+    Get active shopping cart. Creates one if it doesn't exist.
     """
     carrito = crud.carrito.get_activo_by_usuario(db, usuario_id=current_user.id)
     if not carrito:
-        raise HTTPException(
-            status_code=404,
-            detail="No active shopping cart found",
-        )
+        # Create a new active cart automatically
+        try:
+            carrito = crud.carrito.create_with_usuario(db, usuario_id=current_user.id)
+            if not carrito:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to create shopping cart",
+                )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error creating shopping cart: {str(e)}",
+            )
     return carrito
 
 @router.post("/items", response_model=schemas.ItemCarrito)
@@ -68,23 +77,39 @@ def add_item_carrito(
     current_user: models.Usuario = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Add item to active shopping cart.
+    Add item to active shopping cart. Creates cart if it doesn't exist.
     """
     carrito = crud.carrito.get_activo_by_usuario(db, usuario_id=current_user.id)
     if not carrito:
-        raise HTTPException(
-            status_code=404,
-            detail="No active shopping cart found",
+        # Create a new active cart automatically
+        try:
+            carrito = crud.carrito.create_with_usuario(db, usuario_id=current_user.id)
+            if not carrito:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to create shopping cart",
+                )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error creating shopping cart: {str(e)}",
+            )
+    
+    try:
+        item = crud.carrito.add_item(
+            db, carrito_id=carrito.id, item_in=item_in
         )
-    item = crud.carrito.add_item(
-        db, carrito_id=carrito.id, item_in=item_in
-    )
-    if not item:
+        if not item:
+            raise HTTPException(
+                status_code=400,
+                detail="Could not add item to cart. Check package availability.",
+            )
+        return item
+    except Exception as e:
         raise HTTPException(
-            status_code=400,
-            detail="Could not add item to cart. Check package availability.",
+            status_code=500,
+            detail=f"Error adding item to cart: {str(e)}",
         )
-    return item
 
 @router.put("/items/{item_id}", response_model=schemas.ItemCarrito)
 def update_item_carrito(
@@ -150,8 +175,38 @@ def get_carrito_total(
     """
     carrito = crud.carrito.get_activo_by_usuario(db, usuario_id=current_user.id)
     if not carrito:
+        carrito = crud.carrito.create_with_usuario(db, usuario_id=current_user.id)
+    return crud.carrito.get_total(db, carrito_id=carrito.id)
+
+@router.post("/checkout", response_model=schemas.Venta)
+def checkout_carrito(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.Usuario = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Checkout active shopping cart and create a sale.
+    """
+    carrito = crud.carrito.get_activo_by_usuario(db, usuario_id=current_user.id)
+    if not carrito:
         raise HTTPException(
             status_code=404,
             detail="No active shopping cart found",
         )
-    return crud.carrito.get_total(db, carrito_id=carrito.id) 
+    
+    # Check if cart has items
+    if not carrito.items or len(carrito.items) == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot checkout empty cart",
+        )
+    
+    # Create sale from cart
+    venta = crud.carrito.checkout(db, carrito_id=carrito.id)
+    if not venta:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not process checkout",
+        )
+    
+    return venta 

@@ -1,7 +1,8 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.crud.base import CRUDBase
 from app.models.carrito import Carrito, ItemCarrito
+from app.models.venta import Venta, DetalleVenta
 from app.schemas.carrito import CarritoCreate, CarritoUpdate, ItemCarritoCreate, ItemCarritoUpdate
 from app.crud.paquete import paquete
 
@@ -20,14 +21,18 @@ class CRUDCarrito(CRUDBase[Carrito, CarritoCreate, CarritoUpdate]):
     def get_activo_by_usuario(
         self, db: Session, *, usuario_id: int
     ) -> Optional[Carrito]:
-        return (
+        carrito = (
             db.query(Carrito)
+            .options(joinedload(Carrito.items).joinedload(ItemCarrito.paquete))
             .filter(
                 Carrito.usuario_id == usuario_id,
                 Carrito.estado == "activo"
             )
             .first()
         )
+        if carrito:
+            carrito.total = self.get_total(db, carrito_id=carrito.id)
+        return carrito
 
     def create_with_usuario(
         self, db: Session, *, usuario_id: int
@@ -135,5 +140,61 @@ class CRUDCarrito(CRUDBase[Carrito, CarritoCreate, CarritoUpdate]):
             .all()
         )
         return sum(item.subtotal for item in items)
+
+    def checkout(self, db: Session, *, carrito_id: int) -> Optional[Venta]:
+        """
+        Convert cart to sale and mark cart as completed
+        """
+        carrito = self.get(db, id=carrito_id)
+        if not carrito or carrito.estado != "activo":
+            return None
+
+        # Get cart items
+        items = (
+            db.query(ItemCarrito)
+            .filter(ItemCarrito.carrito_id == carrito_id)
+            .all()
+        )
+        
+        if not items:
+            return None
+
+        # Calculate total
+        total = sum(item.subtotal for item in items)
+
+        # Create sale
+        venta = Venta(
+            usuario_id=carrito.usuario_id,
+            total=total,
+            estado="pendiente",
+            metodo_pago="pendiente"
+        )
+        db.add(venta)
+        db.flush()  # Get the venta.id
+
+        # Create sale items
+        for cart_item in items:
+            venta_item = DetalleVenta(
+                venta_id=venta.id,
+                paquete_id=cart_item.paquete_id,
+                cantidad=cart_item.cantidad,
+                precio_unitario=cart_item.precio_unitario,
+                subtotal=cart_item.subtotal
+            )
+            db.add(venta_item)
+            
+            # Update package availability
+            paquete_obj = paquete.get(db, id=cart_item.paquete_id)
+            if paquete_obj:
+                paquete_obj.cupo_disponible -= cart_item.cantidad
+                db.add(paquete_obj)
+
+        # Mark cart as completed
+        carrito.estado = "completado"
+        db.add(carrito)
+
+        db.commit()
+        db.refresh(venta)
+        return venta
 
 carrito = CRUDCarrito(Carrito) 

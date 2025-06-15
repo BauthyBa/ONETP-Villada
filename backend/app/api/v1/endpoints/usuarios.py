@@ -13,7 +13,7 @@ def read_usuarios(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.Usuario = Depends(deps.get_current_jefe_ventas),
+    current_user: models.Usuario = Depends(deps.get_current_admin),
 ) -> Any:
     """
     Retrieve users.
@@ -61,6 +61,23 @@ def read_usuario_me(
     """
     return current_user
 
+@router.get("/debug")
+def debug_permissions(
+    current_user: models.Usuario = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Debug endpoint to check permissions.
+    """
+    return {
+        "user_id": current_user.id,
+        "email": current_user.email,
+        "role": current_user.role,
+        "is_active": current_user.is_active,
+        "is_admin": crud.usuario.is_admin(current_user),
+        "is_jefe_ventas": crud.usuario.is_jefe_ventas(current_user),
+        "role_check": current_user.role in ["admin", "jefe_ventas"]
+    }
+
 @router.get("/{usuario_id}", response_model=schemas.Usuario)
 def read_usuario_by_id(
     usuario_id: int,
@@ -73,7 +90,7 @@ def read_usuario_by_id(
     usuario = crud.usuario.get(db, id=usuario_id)
     if usuario == current_user:
         return usuario
-    if not crud.usuario.is_jefe_ventas(current_user):
+    if not crud.usuario.is_admin(current_user):
         raise HTTPException(
             status_code=400, detail="The user doesn't have enough privileges"
         )
@@ -85,7 +102,7 @@ def update_usuario(
     db: Session = Depends(deps.get_db),
     usuario_id: int,
     usuario_in: schemas.UsuarioUpdate,
-    current_user: models.Usuario = Depends(deps.get_current_jefe_ventas),
+    current_user: models.Usuario = Depends(deps.get_current_admin),
 ) -> Any:
     """
     Update a user.

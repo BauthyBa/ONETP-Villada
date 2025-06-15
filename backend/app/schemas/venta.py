@@ -1,15 +1,20 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from app.schemas.paquete import Paquete
+from app.schemas.usuario import Usuario
 
-class DetalleVentaBase(BaseModel):
+class ItemVentaBase(BaseModel):
     paquete_id: int
     cantidad: int
 
-class DetalleVentaCreate(DetalleVentaBase):
+class ItemVentaCreate(ItemVentaBase):
     pass
 
-class DetalleVentaInDB(DetalleVentaBase):
+class ItemVentaUpdate(BaseModel):
+    cantidad: Optional[int] = None
+
+class ItemVentaInDB(ItemVentaBase):
     id: int
     venta_id: int
     precio_unitario: float
@@ -20,8 +25,14 @@ class DetalleVentaInDB(DetalleVentaBase):
     class Config:
         from_attributes = True
 
-class DetalleVenta(DetalleVentaInDB):
-    pass
+class ItemVenta(ItemVentaInDB):
+    paquete: Optional[Paquete] = None
+
+# Legacy aliases for compatibility
+DetalleVentaBase = ItemVentaBase
+DetalleVentaCreate = ItemVentaCreate
+DetalleVentaInDB = ItemVentaInDB
+DetalleVenta = ItemVenta
 
 class VentaBase(BaseModel):
     metodo_pago: str
@@ -42,10 +53,10 @@ class VentaInDB(VentaBase):
     estado: str
     created_at: datetime
     updated_at: datetime
-    detalles: List[DetalleVenta] = []
+    detalles: List[ItemVenta] = []
 
     class Config:
         from_attributes = True
 
 class Venta(VentaInDB):
-    pass 
+    usuario: Optional[Usuario] = None 

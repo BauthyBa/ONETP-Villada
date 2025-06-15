@@ -60,6 +60,16 @@ def get_current_jefe_ventas(
         )
     return current_user
 
+def get_current_admin(
+    current_user: models.Usuario = Depends(get_current_user),
+) -> models.Usuario:
+    """Check if user has admin privileges (admin or jefe_ventas)"""
+    if current_user.role not in ["admin", "jefe_ventas"]:
+        raise HTTPException(
+            status_code=400, detail="The user doesn't have enough privileges"
+        )
+    return current_user
+
 # Optional user dependency (for endpoints that work with or without auth)
 def get_current_user_optional(
     db: Session = Depends(get_db),

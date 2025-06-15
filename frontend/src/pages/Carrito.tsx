@@ -29,6 +29,7 @@ const Carrito = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [processingCheckout, setProcessingCheckout] = useState(false);
+  const [updatingItem, setUpdatingItem] = useState<number | null>(null);
   const { showSuccess, showError, showInfo } = useNotification();
 
   useEffect(() => {
@@ -53,6 +54,7 @@ const Carrito = () => {
   const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
     
+    setUpdatingItem(itemId);
     try {
       await axios.put(`/api/v1/carritos/items/${itemId}`, {
         cantidad: newQuantity,
@@ -61,27 +63,29 @@ const Carrito = () => {
       fetchCarrito();
     } catch (err: any) {
       showError(err.response?.data?.detail || 'Error al actualizar la cantidad');
+    } finally {
+      setUpdatingItem(null);
     }
   };
 
   const handleRemoveItem = async (itemId: number) => {
+    setUpdatingItem(itemId);
     try {
       await axios.delete(`/api/v1/carritos/items/${itemId}`);
       showSuccess('Paquete eliminado del carrito');
       fetchCarrito();
     } catch (err: any) {
       showError(err.response?.data?.detail || 'Error al eliminar el item');
+    } finally {
+      setUpdatingItem(null);
     }
   };
 
   const handleCheckout = async () => {
     setProcessingCheckout(true);
     try {
-      await axios.post('/api/v1/ventas/', {
-        metodo_pago: 'tarjeta',
-      });
-      
-      showSuccess('¡Compra realizada exitosamente! 🎉 Recibirás un email de confirmación.');
+      const response = await axios.post('/api/v1/carritos/checkout');
+      showSuccess('¡Compra registrada exitosamente! 🎉 Tu pedido está pendiente de entrega.');
       navigate('/ventas');
     } catch (err: any) {
       showError(err.response?.data?.detail || 'Error al procesar la compra');
@@ -106,10 +110,10 @@ const Carrito = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">🛒</div>
-          <div className="text-xl text-gray-600">Cargando tu carrito...</div>
+          <div className="text-4xl mb-4">⏳</div>
+          <div className="text-lg text-gray-600">Cargando carrito...</div>
         </div>
       </div>
     );
@@ -117,10 +121,10 @@ const Carrito = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">😔</div>
-          <div className="text-xl text-red-600">{error}</div>
+          <div className="text-4xl mb-4">❌</div>
+          <div className="text-lg text-red-600">{error}</div>
         </div>
       </div>
     );
@@ -128,19 +132,19 @@ const Carrito = () => {
 
   if (!carrito || carrito.items.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
-            <div className="text-8xl mb-6">🛒</div>
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Tu carrito está vacío</h2>
-            <p className="text-xl text-gray-600 mb-8">
-              ¡Descubre nuestros increíbles paquetes turísticos y comienza tu aventura!
+            <div className="text-6xl mb-6">🛒</div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">Tu carrito está vacío</h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Explora nuestros paquetes turísticos y agrega los que más te gusten
             </p>
             <button
               onClick={() => navigate('/paquetes')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
             >
-              🌟 Explorar Paquetes
+              Ver Paquetes
             </button>
           </div>
         </div>
@@ -149,86 +153,80 @@ const Carrito = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-4">🛒 Mi Carrito</h1>
-          <p className="text-xl opacity-90">Revisa tus paquetes seleccionados</p>
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-6">
+          <h1 className="text-3xl font-bold text-gray-900">🛒 Mi Carrito de Compras</h1>
+          <p className="text-gray-600 mt-2">Revisa y confirma tu selección de paquetes</p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Cart Items */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                  📦 Tus Paquetes ({carrito.items.length})
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-4 border-b">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Paquetes Seleccionados ({carrito.items.length})
                 </h2>
               </div>
 
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y">
                 {carrito.items.map((item) => (
-                  <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center space-x-6">
-                      {/* Package Icon */}
-                      <div className="flex-shrink-0">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center text-3xl">
+                  <div key={item.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-xl">
                           {getDestinoIcon(item.paquete.destino)}
                         </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">{item.paquete.nombre}</h3>
+                          <p className="text-sm text-gray-600">
+                            {item.paquete.destino} • {item.paquete.duracion_dias} días
+                          </p>
+                          <p className="text-sm font-medium text-blue-600">
+                            ${item.paquete.precio.toLocaleString()} por persona
+                          </p>
+                        </div>
                       </div>
 
-                      {/* Package Info */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                          {item.paquete.nombre}
-                        </h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-                          <span className="flex items-center">
-                            📍 {item.paquete.destino}
+                      <div className="flex items-center space-x-4">
+                        {/* Quantity Controls */}
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleUpdateQuantity(item.id, item.cantidad - 1)}
+                            disabled={item.cantidad <= 1 || updatingItem === item.id}
+                            className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                          >
+                            −
+                          </button>
+                          <span className="w-8 text-center font-medium">
+                            {updatingItem === item.id ? '⏳' : item.cantidad}
                           </span>
-                          <span className="flex items-center">
-                            ⏱️ {item.paquete.duracion_dias} días
-                          </span>
+                          <button
+                            onClick={() => handleUpdateQuantity(item.id, item.cantidad + 1)}
+                            disabled={updatingItem === item.id}
+                            className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                          >
+                            +
+                          </button>
                         </div>
-                        <div className="text-lg font-bold text-blue-600">
-                          ${item.paquete.precio.toLocaleString()} c/u
-                        </div>
-                      </div>
 
-                      {/* Quantity Controls */}
-                      <div className="flex items-center space-x-3">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.cantidad - 1)}
-                          disabled={item.cantidad <= 1}
-                          className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          −
-                        </button>
-                        <span className="w-12 text-center font-semibold text-lg">
-                          {item.cantidad}
-                        </span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.cantidad + 1)}
-                          className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      {/* Subtotal and Remove */}
-                      <div className="text-right">
-                        <div className="text-xl font-bold text-gray-800 mb-2">
-                          ${item.subtotal.toLocaleString()}
+                        {/* Subtotal */}
+                        <div className="text-right min-w-[100px]">
+                          <div className="font-semibold text-gray-900">
+                            ${item.subtotal.toLocaleString()}
+                          </div>
+                          <button
+                            onClick={() => handleRemoveItem(item.id)}
+                            disabled={updatingItem === item.id}
+                            className="text-red-600 text-sm hover:text-red-800 disabled:opacity-50"
+                          >
+                            Eliminar
+                          </button>
                         </div>
-                        <button
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="text-red-500 hover:text-red-700 text-sm font-medium transition-colors"
-                        >
-                          🗑️ Eliminar
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -239,24 +237,20 @@ const Carrito = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                💰 Resumen del Pedido
+            <div className="bg-white rounded-lg shadow p-6 sticky top-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Resumen del Pedido
               </h2>
 
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal ({carrito.items.length} paquetes)</span>
                   <span>${carrito.total.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Descuentos</span>
-                  <span className="text-green-600">-$0</span>
-                </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-xl font-bold text-gray-800">
+                <div className="border-t pt-3">
+                  <div className="flex justify-between text-lg font-semibold text-gray-900">
                     <span>Total</span>
-                    <span className="text-blue-600">${carrito.total.toLocaleString()}</span>
+                    <span>${carrito.total.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -264,33 +258,31 @@ const Carrito = () => {
               <button
                 onClick={handleCheckout}
                 disabled={processingCheckout}
-                className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 ${
+                className={`w-full py-3 rounded-lg font-medium ${
                   processingCheckout
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 transform hover:scale-105 shadow-lg hover:shadow-xl'
+                    : 'bg-green-600 hover:bg-green-700'
                 } text-white`}
               >
                 {processingCheckout ? (
                   <>⏳ Procesando...</>
                 ) : (
-                  <>💳 Proceder al Pago</>
+                  <>✅ Confirmar Compra</>
                 )}
               </button>
 
               <div className="mt-4 text-center">
                 <button
                   onClick={() => navigate('/paquetes')}
-                  className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  className="text-blue-600 hover:text-blue-800 text-sm"
                 >
-                  ← Seguir comprando
+                  ← Seguir agregando paquetes
                 </button>
               </div>
 
-              {/* Security Info */}
-              <div className="mt-6 p-4 bg-green-50 rounded-xl">
-                <div className="flex items-center text-green-700 text-sm">
-                  <span className="mr-2">🔒</span>
-                  <span>Compra 100% segura y protegida</span>
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <div className="text-blue-700 text-sm">
+                  <span className="font-medium">📋 Nota:</span> Tu compra será registrada como pendiente de entrega.
                 </div>
               </div>
             </div>

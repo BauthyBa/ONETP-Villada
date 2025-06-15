@@ -1,8 +1,8 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.crud.base import CRUDBase
 from app.models.venta import Venta, DetalleVenta
-from app.schemas.venta import VentaCreate, VentaUpdate
+from app.schemas.venta import VentaCreate, VentaUpdate, ItemVentaUpdate
 from app.crud.carrito import carrito
 from app.crud.paquete import paquete
 from app.crud.usuario import usuario
@@ -15,6 +15,7 @@ class CRUDVenta(CRUDBase[Venta, VentaCreate, VentaUpdate]):
     ) -> List[Venta]:
         return (
             db.query(Venta)
+            .options(joinedload(Venta.detalles).joinedload(DetalleVenta.paquete), joinedload(Venta.usuario))
             .filter(Venta.usuario_id == usuario_id)
             .offset(skip)
             .limit(limit)
@@ -122,6 +123,110 @@ class CRUDVenta(CRUDBase[Venta, VentaCreate, VentaUpdate]):
             print(f"Error sending email notifications: {e}")
         
         return db_obj
+
+    def update_detail(
+        self,
+        db: Session,
+        *,
+        venta_id: int,
+        detalle_id: int,
+        detalle_in: ItemVentaUpdate
+    ) -> Optional[DetalleVenta]:
+        detalle = (
+            db.query(DetalleVenta)
+            .filter(
+                DetalleVenta.venta_id == venta_id,
+                DetalleVenta.id == detalle_id
+            )
+            .first()
+        )
+        if not detalle:
+            return None
+
+        venta_obj = self.get(db, id=venta_id)
+        if not venta_obj or venta_obj.estado != "pendiente":
+            return None
+
+        if detalle_in.cantidad is not None:
+            # Calculate difference for package availability
+            old_cantidad = detalle.cantidad
+            new_cantidad = detalle_in.cantidad
+            diff = new_cantidad - old_cantidad
+
+            # Check package availability
+            paquete_obj = paquete.get(db, id=detalle.paquete_id)
+            if paquete_obj and paquete_obj.cupo_disponible < diff:
+                return None
+
+            # Update package availability
+            if paquete_obj:
+                paquete_obj.cupo_disponible -= diff
+                db.add(paquete_obj)
+
+            # Update detail
+            detalle.cantidad = new_cantidad
+            detalle.subtotal = detalle.precio_unitario * new_cantidad
+            db.add(detalle)
+
+            # Recalculate venta total
+            self._recalculate_total(db, venta_id)
+
+            db.commit()
+            db.refresh(detalle)
+
+        return detalle
+
+    def remove_detail(
+        self,
+        db: Session,
+        *,
+        venta_id: int,
+        detalle_id: int
+    ) -> Optional[DetalleVenta]:
+        detalle = (
+            db.query(DetalleVenta)
+            .filter(
+                DetalleVenta.venta_id == venta_id,
+                DetalleVenta.id == detalle_id
+            )
+            .first()
+        )
+        if not detalle:
+            return None
+
+        venta_obj = self.get(db, id=venta_id)
+        if not venta_obj or venta_obj.estado != "pendiente":
+            return None
+
+        # Restore package availability
+        paquete_obj = paquete.get(db, id=detalle.paquete_id)
+        if paquete_obj:
+            paquete_obj.cupo_disponible += detalle.cantidad
+            db.add(paquete_obj)
+
+        # Remove detail
+        db.delete(detalle)
+
+        # Recalculate venta total
+        self._recalculate_total(db, venta_id)
+
+        db.commit()
+        return detalle
+
+    def _recalculate_total(self, db: Session, venta_id: int):
+        """Recalculate the total for a venta"""
+        remaining_detalles = (
+            db.query(DetalleVenta)
+            .filter(DetalleVenta.venta_id == venta_id)
+            .all()
+        )
+        
+        new_total = sum(detalle.subtotal for detalle in remaining_detalles)
+        
+        venta_obj = self.get(db, id=venta_id)
+        if venta_obj:
+            venta_obj.total = new_total
+            db.add(venta_obj)
 
     def confirmar(self, db: Session, *, venta_id: int) -> Optional[Venta]:
         venta = self.get(db, id=venta_id)

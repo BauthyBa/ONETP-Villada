@@ -128,22 +128,65 @@ setup_frontend() {
 start_backend() {
     print_color $BLUE "🚀 Iniciando servidor backend..."
     
-    cd backend || exit 1
-    source venv/bin/activate
+    cd backend || {
+        print_color $RED "❌ Error: No se pudo acceder al directorio backend"
+        exit 1
+    }
+    
+    # Verificar si el entorno virtual existe
+    if [ ! -d "venv" ]; then
+        print_color $YELLOW "📦 Creando entorno virtual de Python..."
+        python3 -m venv venv || {
+            print_color $RED "❌ Error al crear el entorno virtual"
+            exit 1
+        }
+    fi
+    
+    # Activar entorno virtual
+    source venv/bin/activate || {
+        print_color $RED "❌ Error al activar el entorno virtual"
+        exit 1
+    }
+    
+    # Verificar si las dependencias están instaladas
+    if [ ! -f ".deps_installed" ]; then
+        print_color $YELLOW "📦 Instalando dependencias de Python..."
+        pip install --upgrade pip
+        pip install -r requirements.txt || {
+            print_color $RED "❌ Error al instalar las dependencias"
+            exit 1
+        }
+        touch .deps_installed
+    fi
     
     # Inicializar base de datos
     print_color $YELLOW "🗄️ Inicializando base de datos..."
-    python -c "from app.db.init_db import init_db; init_db()"
+    python -c "from app.db.init_db import init_db; init_db()" || {
+        print_color $RED "❌ Error al inicializar la base de datos"
+        exit 1
+    }
     
     # Iniciar servidor
     print_color $YELLOW "🌐 Iniciando servidor FastAPI..."
     python start.py &
     BACKEND_PID=$!
     
-    print_color $GREEN "✅ Backend iniciado en http://localhost:8000"
-    print_color $CYAN "📚 Documentación API: http://localhost:8000/docs"
+    # Esperar a que el servidor esté listo
+    print_color $YELLOW "⏳ Esperando a que el servidor esté listo..."
+    for i in {1..30}; do
+        if curl -s http://localhost:8000/health > /dev/null; then
+            print_color $GREEN "✅ Backend iniciado correctamente en http://localhost:8000"
+            print_color $CYAN "📚 Documentación API: http://localhost:8000/docs"
+            cd ..
+            return 0
+        fi
+        sleep 1
+    done
     
+    print_color $RED "❌ Error: El servidor backend no respondió después de 30 segundos"
+    kill $BACKEND_PID 2>/dev/null
     cd ..
+    exit 1
 }
 
 # Función para iniciar el frontend

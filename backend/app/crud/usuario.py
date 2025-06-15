@@ -49,6 +49,10 @@ class CRUDUsuario(CRUDBase[Usuario, UsuarioCreate, UsuarioUpdate]):
         return usuario.is_active
 
     def is_jefe_ventas(self, usuario: Usuario) -> bool:
-        return usuario.role == "jefe_ventas"
+        return usuario.role in ["jefe_ventas", "admin"]
+
+    def is_admin(self, usuario: Usuario) -> bool:
+        """Check if user has admin privileges"""
+        return usuario.role in ["admin", "jefe_ventas"]
 
 usuario = CRUDUsuario(Usuario) 

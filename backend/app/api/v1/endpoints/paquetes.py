@@ -24,7 +24,7 @@ def create_paquete(
     *,
     db: Session = Depends(deps.get_db),
     paquete_in: schemas.PaqueteCreate,
-    current_user: models.Usuario = Depends(deps.get_current_jefe_ventas),
+    current_user: models.Usuario = Depends(deps.get_current_admin),
 ) -> Any:
     """
     Create new tour package.
@@ -38,7 +38,7 @@ def update_paquete(
     db: Session = Depends(deps.get_db),
     paquete_id: int,
     paquete_in: schemas.PaqueteUpdate,
-    current_user: models.Usuario = Depends(deps.get_current_jefe_ventas),
+    current_user: models.Usuario = Depends(deps.get_current_admin),
 ) -> Any:
     """
     Update a tour package.
@@ -96,4 +96,23 @@ def read_paquetes_by_destino(
     paquetes = crud.paquete.get_by_destino(
         db, destino=destino, skip=skip, limit=limit
     )
-    return paquetes 
+    return paquetes
+
+@router.delete("/{paquete_id}", response_model=schemas.Paquete)
+def delete_paquete(
+    *,
+    db: Session = Depends(deps.get_db),
+    paquete_id: int,
+    current_user: models.Usuario = Depends(deps.get_current_admin),
+) -> Any:
+    """
+    Delete a tour package.
+    """
+    paquete = crud.paquete.get(db, id=paquete_id)
+    if not paquete:
+        raise HTTPException(
+            status_code=404,
+            detail="The tour package with this id does not exist in the system",
+        )
+    paquete = crud.paquete.remove(db, id=paquete_id)
+    return paquete 

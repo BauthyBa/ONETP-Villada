@@ -1,68 +1,41 @@
 import os
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import AnyHttpUrl, PostgresDsn, validator
+from pydantic import AnyHttpUrl, validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     
-    @validator("SECRET_KEY", pre=True)
-    def validate_secret_key(cls, v: str) -> str:
-        if not v:
-            raise ValueError("SECRET_KEY environment variable is required")
-        if len(v) < 32:
-            raise ValueError("SECRET_KEY must be at least 32 characters long")
-        if v == "change-me-in-production":
-            raise ValueError("SECRET_KEY must be changed from default value")
-        return v
-    
     # Database
-    DATABASE_URL: Optional[str] = None
-
-    @validator("DATABASE_URL", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str) and v:
-            # Print the DATABASE_URL for debugging (remove sensitive info)
-            print(f"DATABASE_URL detected: {v[:20]}...")
-            # Validate that it's a proper PostgreSQL URL
-            if not v.startswith("postgresql://") and not v.startswith("postgres://"):
-                raise ValueError(f"DATABASE_URL must start with postgresql:// or postgres://, got: {v[:50]}...")
-            return v
-        # Fallback for local development
-        fallback_url = "postgresql://postgres:postgres@localhost:5432/tour_packages_db"
-        print(f"Using fallback DATABASE_URL for local development")
-        return fallback_url
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://tourpackages:tourpackages123@localhost:5432/tourpackages_db")
 
     # CORS - Allow common origins for development and production
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
-
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        # Default CORS origins for development and production
-        return [
-            "http://localhost:3000",
-            "http://localhost:8000", 
-            "https://localhost:3000",
-            "https://localhost:8000",
-            # Add your Vercel domains here when deployed
-        ]
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:8000", 
+        "https://localhost:3000",
+        "https://localhost:8000",
+    ]
 
     PROJECT_NAME: str = "Tour Packages API - ONIET 2025"
     
     # Algorithm for JWT
     ALGORITHM: str = "HS256"
+    
+    # Email settings
+    SENDGRID_API_KEY: Optional[str] = os.getenv("SENDGRID_API_KEY")
+    EMAILS_ENABLED: bool = os.getenv("EMAILS_ENABLED", "false").lower() == "true"
+    EMAILS_FROM_EMAIL: str = os.getenv("EMAILS_FROM_EMAIL", "noreply@tourpackages.com")
+    EMAILS_FROM_NAME: str = os.getenv("EMAILS_FROM_NAME", "Tour Packages")
 
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "allow"  # Allow extra fields from .env
 
 
 settings = Settings() 

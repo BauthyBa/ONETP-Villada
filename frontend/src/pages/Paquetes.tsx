@@ -24,6 +24,7 @@ const Paquetes = () => {
   const [selectedDestino, setSelectedDestino] = useState<string>('');
   const [priceRange, setPriceRange] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [loadingAdd, setLoadingAdd] = useState<number | null>(null);
   const { showSuccess, showError } = useNotification();
 
   useEffect(() => {
@@ -42,6 +43,7 @@ const Paquetes = () => {
   };
 
   const handleAddToCart = async (paqueteId: number) => {
+    setLoadingAdd(paqueteId);
     try {
       await axios.post('/api/v1/carritos/items', {
         paquete_id: paqueteId,
@@ -49,7 +51,10 @@ const Paquetes = () => {
       });
       showSuccess('¡Paquete agregado al carrito exitosamente! 🛒');
     } catch (err: any) {
+      console.error('Error adding to cart:', err);
       showError(err.response?.data?.detail || 'Error al agregar al carrito');
+    } finally {
+      setLoadingAdd(null);
     }
   };
 
@@ -96,10 +101,10 @@ const Paquetes = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">✈️</div>
-          <div className="text-xl text-gray-600">Cargando paquetes increíbles...</div>
+          <div className="text-4xl mb-4">⏳</div>
+          <div className="text-lg text-gray-600">Cargando paquetes...</div>
         </div>
       </div>
     );
@@ -107,29 +112,28 @@ const Paquetes = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">😔</div>
-          <div className="text-xl text-red-600">{error}</div>
+          <div className="text-4xl mb-4">❌</div>
+          <div className="text-lg text-red-600">{error}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-4">🏞️ Paquetes Turísticos</h1>
-          <p className="text-xl opacity-90">Descubre los destinos más increíbles de Argentina</p>
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-6">
+          <h1 className="text-3xl font-bold text-gray-900">📋 Lista de Paquetes Turísticos</h1>
+          <p className="text-gray-600 mt-2">Selecciona los paquetes que deseas agregar a tu carrito</p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">🔍 Encuentra tu aventura perfecta</h2>
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
             <div>
@@ -139,7 +143,7 @@ const Paquetes = () => {
                 placeholder="Buscar paquetes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -149,12 +153,12 @@ const Paquetes = () => {
               <select
                 value={selectedDestino}
                 onChange={(e) => setSelectedDestino(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Todos los destinos</option>
+                <option value="">Todos</option>
                 {uniqueDestinos.map((destino) => (
                   <option key={destino} value={destino}>
-                    {getDestinoIcon(destino)} {destino}
+                    {destino}
                   </option>
                 ))}
               </select>
@@ -162,16 +166,16 @@ const Paquetes = () => {
 
             {/* Price Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Rango de Precio</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Precio</label>
               <select
                 value={priceRange}
                 onChange={(e) => setPriceRange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Todos los precios</option>
-                <option value="low">💰 Hasta $80,000</option>
-                <option value="medium">💰💰 $80,000 - $120,000</option>
-                <option value="high">💰💰💰 Más de $120,000</option>
+                <option value="">Todos</option>
+                <option value="low">Hasta $80,000</option>
+                <option value="medium">$80,000 - $120,000</option>
+                <option value="high">Más de $120,000</option>
               </select>
             </div>
 
@@ -183,115 +187,116 @@ const Paquetes = () => {
                   setPriceRange('');
                   setSearchTerm('');
                 }}
-                className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                className="w-full bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >
-                🗑️ Limpiar Filtros
+                Limpiar
               </button>
             </div>
           </div>
         </div>
 
         {/* Results Count */}
-        <div className="mb-6">
+        <div className="mb-4">
           <p className="text-gray-600">
-            Mostrando {filteredPaquetes.length} de {paquetes.length} paquetes disponibles
+            {filteredPaquetes.length} paquete(s) encontrado(s)
           </p>
         </div>
 
-        {/* Packages Grid */}
+        {/* Packages List */}
         {filteredPaquetes.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">No se encontraron paquetes</h3>
-            <p className="text-gray-600 mb-6">Intenta ajustar tus filtros para ver más opciones</p>
-            <button
-              onClick={() => {
-                setSelectedDestino('');
-                setPriceRange('');
-                setSearchTerm('');
-              }}
-              className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Ver todos los paquetes
-            </button>
+          <div className="text-center py-12 bg-white rounded-lg">
+            <div className="text-4xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">No se encontraron paquetes</h3>
+            <p className="text-gray-600 mb-4">Intenta ajustar tus filtros</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPaquetes.map((paquete) => (
-              <div
-                key={paquete.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              >
-                {/* Package Image */}
-                <div className="relative h-48 bg-gradient-to-br from-blue-400 to-purple-500">
-                  {paquete.imagen_url ? (
-                    <img
-                      src={paquete.imagen_url}
-                      alt={paquete.nombre}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-6xl text-white">
-                      {getDestinoIcon(paquete.destino)}
-                    </div>
-                  )}
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-white bg-opacity-90 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Paquete
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Destino
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Duración
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Precio
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Disponible
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acción
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredPaquetes.map((paquete) => (
+                  <tr key={paquete.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {paquete.nombre}
+                        </div>
+                        <div className="text-sm text-gray-500 max-w-xs truncate">
+                          {paquete.descripcion}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center">
+                        <span className="mr-2">{getDestinoIcon(paquete.destino)}</span>
+                        <span className="text-sm text-gray-900">{paquete.destino}</span>
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {paquete.duracion_dias} días
-                    </span>
-                  </div>
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      {paquete.cupo_disponible} disponibles
-                    </span>
-                  </div>
-                </div>
-
-                {/* Package Content */}
-                <div className="p-6">
-                  <div className="flex items-center mb-3">
-                    <span className="text-2xl mr-2">{getDestinoIcon(paquete.destino)}</span>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-800">{paquete.nombre}</h3>
-                      <p className="text-gray-600">{paquete.destino}</p>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-600 mb-4 line-clamp-3">{paquete.descripcion}</p>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <span className="mr-4">📅 {new Date(paquete.fecha_inicio).toLocaleDateString()}</span>
-                      <span>👥 {paquete.cupo_maximo} personas</span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-3xl font-bold text-blue-600">
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
                         ${paquete.precio.toLocaleString()}
                       </div>
-                      <div className="text-sm text-gray-500">por persona</div>
-                    </div>
-                    <button
-                      onClick={() => handleAddToCart(paquete.id)}
-                      disabled={paquete.cupo_disponible === 0}
-                      className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                        paquete.cupo_disponible === 0
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 shadow-lg hover:shadow-xl'
-                      }`}
-                    >
-                      {paquete.cupo_disponible === 0 ? (
-                        <>🚫 Sin stock</>
-                      ) : (
-                        <>🛒 Agregar</>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        paquete.cupo_disponible > 5 
+                          ? 'bg-green-100 text-green-800' 
+                          : paquete.cupo_disponible > 0 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {paquete.cupo_disponible} de {paquete.cupo_maximo}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleAddToCart(paquete.id)}
+                        disabled={paquete.cupo_disponible === 0 || loadingAdd === paquete.id}
+                        className={`px-4 py-2 rounded text-sm font-medium ${
+                          paquete.cupo_disponible === 0
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : loadingAdd === paquete.id
+                            ? 'bg-blue-300 text-blue-700 cursor-wait'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      >
+                        {loadingAdd === paquete.id ? (
+                          <>⏳ Agregando...</>
+                        ) : paquete.cupo_disponible === 0 ? (
+                          <>Sin stock</>
+                        ) : (
+                          <>+ Agregar al carrito</>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from app.schemas.paquete import Paquete
 
 class ItemCarritoBase(BaseModel):
     paquete_id: int
@@ -24,7 +25,7 @@ class ItemCarritoInDB(ItemCarritoBase):
         from_attributes = True
 
 class ItemCarrito(ItemCarritoInDB):
-    pass
+    paquete: Optional[Paquete] = None
 
 class CarritoBase(BaseModel):
     estado: str = "activo"
@@ -41,6 +42,7 @@ class CarritoInDB(CarritoBase):
     created_at: datetime
     updated_at: datetime
     items: List[ItemCarrito] = []
+    total: float = 0.0
 
     class Config:
         from_attributes = True

@@ -10,19 +10,10 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS
-origins = [
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "https://localhost:3000", 
-    "https://localhost:8000",
-    # Add your Vercel deployment URL here when ready
-    # "https://your-app.vercel.app"
-]
-
+# Configure CORS - Allow all origins for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
