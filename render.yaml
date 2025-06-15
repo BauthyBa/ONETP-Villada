@@ -3,15 +3,8 @@ services:
   - type: web
     name: onetp-backend-villada
     env: python
-    buildCommand: |
-      cd backend
-      python -m venv venv
-      source venv/bin/activate
-      pip install -r requirements.txt
-    startCommand: |
-      cd backend
-      source venv/bin/activate
-      uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: bash -c "cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+    startCommand: bash -c "cd backend && source venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -26,13 +19,8 @@ services:
   - type: web
     name: onetp-frontend-villada
     env: node
-    buildCommand: |
-      cd frontend
-      npm install
-      npm run build
-    startCommand: |
-      cd frontend
-      npm start
+    buildCommand: bash -c "cd frontend && npm install && npm run build"
+    startCommand: bash -c "cd frontend && npm start"
     envVars:
       - key: REACT_APP_API_URL
         value: https://onetp-backend-villada.onrender.com 
