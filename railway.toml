@@ -3,7 +3,7 @@ builder = "nixpacks"
 buildCommand = "pip install -r backend/requirements.txt"
 
 [deploy]
-startCommand = "uvicorn main:app --host 0.0.0.0 --port {PORT}"
+startCommand = "./backend/start.sh"
 healthcheckTimeout = 300
 
 [deploy.env]
