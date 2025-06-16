@@ -3,13 +3,13 @@ builder = "python"
 buildCommand = "pip install -r backend/requirements.txt"
 
 [deploy]
-startCommand = "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT --reload"
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 
 [deploy.env]
 NODE_ENV = "production"
-PYTHONPATH = "/app/backend"
+PYTHONPATH = "/app"
 DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/postgres"
 SECRET_KEY = "a22f7fb8e71eb643a316a4a789595ab8830d7effd276d4491dfe7bf61dfbb852"
 ALGORITHM = "HS256"
