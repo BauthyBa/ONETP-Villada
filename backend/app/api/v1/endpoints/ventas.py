@@ -224,4 +224,52 @@ def cancelar_venta(
             status_code=404,
             detail="Sale not found or cannot be cancelled",
         )
-    return venta 
+    return venta
+
+@router.post("/test-email")
+def test_email(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.Usuario = Depends(deps.get_current_admin),
+) -> Any:
+    """
+    Test email functionality by sending a test purchase confirmation.
+    """
+    # Create test data
+    venta_data = {
+        'id': 999,
+        'fecha': '2024-03-20 15:30',
+        'total': 150000.00,
+        'metodo_pago': 'Transferencia Bancaria',
+        'estado': 'pendiente',
+        'detalles': [
+            {
+                'paquete_nombre': 'Escapada a Bariloche',
+                'cantidad': 2,
+                'precio_unitario': 75000.00,
+                'subtotal': 150000.00
+            }
+        ]
+    }
+    
+    client_data = {
+        'name': 'Bautista',
+        'surname': 'Barbero',
+        'email': 'barberogaticabautista@gmail.com',
+        'phone': '1234567890',
+        'address': 'Calle Test 123'
+    }
+    
+    # Send test email
+    try:
+        email_service.send_purchase_confirmation_client(
+            client_email=client_data['email'],
+            client_name=f"{client_data['name']} {client_data['surname']}",
+            venta_data=venta_data
+        )
+        return {"message": "Test email sent successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error sending test email: {str(e)}"
+        ) 

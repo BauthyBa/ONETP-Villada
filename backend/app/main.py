@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
 from app.core.config import settings
@@ -25,20 +26,14 @@ app.add_middleware(
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-@app.get("/")
-def root():
-    return {
-        "message": "🌎 Tour Packages API - ONIET 2025",
-        "status": "✅ API is running",
-        "docs": "/docs",
-        "api": settings.API_V1_STR,
-        "health": "/health"
-    }
-
 @app.get("/health")
 def health_check():
     return {
-        "status": "healthy", 
+        "status": "healthy",
         "service": "tour-packages-api",
         "version": "1.0.0"
-    } 
+    }
+
+# Mount static files - This must be after all API routes
+app.mount("/", StaticFiles(directory="frontend/build", html=True), name="static")
+ 

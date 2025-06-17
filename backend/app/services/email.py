@@ -1,16 +1,18 @@
 import logging
 from typing import Optional, Dict, Any
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 class EmailService:
     def __init__(self):
-        self.sg = None
-        if settings.SENDGRID_API_KEY and settings.EMAILS_ENABLED:
-            self.sg = SendGridAPIClient(api_key=settings.SENDGRID_API_KEY)
+        self.smtp_server = "smtp.gmail.com"
+        self.smtp_port = 587
+        self.smtp_username = settings.EMAILS_FROM_EMAIL
+        self.smtp_password = settings.EMAILS_FROM_PASSWORD
     
     def send_email(
         self,
@@ -19,27 +21,34 @@ class EmailService:
         html_content: str,
         plain_content: Optional[str] = None
     ) -> bool:
-        """Send email using SendGrid"""
-        if not self.sg:
+        """Send email using Gmail SMTP"""
+        if not settings.EMAILS_ENABLED:
             logger.warning("Email service not configured. Email not sent.")
             return False
         
         try:
-            from_email = Email(settings.EMAILS_FROM_EMAIL, settings.EMAILS_FROM_NAME)
-            to_email_obj = To(to_email)
-            
+            # Create message
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>"
+            msg['To'] = to_email
+
+            # Attach HTML content
+            html_part = MIMEText(html_content, 'html')
+            msg.attach(html_part)
+
+            # Attach plain text content if provided
             if plain_content:
-                content = Content("text/plain", plain_content)
-            else:
-                content = Content("text/html", html_content)
+                plain_part = MIMEText(plain_content, 'plain')
+                msg.attach(plain_part)
+
+            # Connect to SMTP server and send email
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.smtp_username, self.smtp_password)
+                server.send_message(msg)
             
-            mail = Mail(from_email, to_email_obj, subject, content)
-            
-            if plain_content and html_content:
-                mail.add_content(Content("text/html", html_content))
-            
-            response = self.sg.send(mail)
-            logger.info(f"Email sent successfully to {to_email}. Status: {response.status_code}")
+            logger.info(f"Email sent successfully to {to_email}")
             return True
             
         except Exception as e:

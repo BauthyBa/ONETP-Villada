@@ -27,10 +27,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     
     # Email settings
-    SENDGRID_API_KEY: Optional[str] = os.getenv("SENDGRID_API_KEY")
-    EMAILS_ENABLED: bool = os.getenv("EMAILS_ENABLED", "false").lower() == "true"
-    EMAILS_FROM_EMAIL: str = os.getenv("EMAILS_FROM_EMAIL", "noreply@tourpackages.com")
-    EMAILS_FROM_NAME: str = os.getenv("EMAILS_FROM_NAME", "Tour Packages")
+    EMAILS_ENABLED: bool = True
+    EMAILS_FROM_EMAIL: str = "barberogaticabautista@gmail.com"  # Your Gmail address
+    EMAILS_FROM_PASSWORD: str = ""  # Your Gmail app password
+    EMAILS_FROM_NAME: str = "ONIET"
 
     class Config:
         case_sensitive = True
