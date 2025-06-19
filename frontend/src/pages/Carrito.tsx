@@ -84,7 +84,7 @@ const Carrito = () => {
   const handleCheckout = async () => {
     setProcessingCheckout(true);
     try {
-      const response = await axios.post('/api/v1/carritos/checkout');
+      await axios.post('/api/v1/carritos/checkout');
       showSuccess('¡Compra registrada exitosamente! 🎉 Tu pedido está pendiente de entrega.');
       navigate('/ventas');
     } catch (err: any) {
