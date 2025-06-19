@@ -1,9 +1,8 @@
 [phases.setup]
 cmds = [
     # Instalar dependencias de Python
-    "pip install --upgrade pip",
-    "pip install uvicorn gunicorn",
-    "pip install -r backend/requirements.txt",
+    "python -m pip install --upgrade pip",
+    "python -m pip install -r backend/requirements.txt",
     # Instalar dependencias de Node.js
     "cd frontend && npm install"
 ]
@@ -14,8 +13,13 @@ cmds = [
     "cd frontend && npm run build"
 ]
 
+[phases.install]
+cmds = [
+    "python -m pip install gunicorn uvicorn"
+]
+
 [start]
-cmd = "gunicorn backend.app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
+cmd = "python -m gunicorn backend.app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
 
 [build.args]
 NODE_VERSION = "18"
@@ -25,6 +29,7 @@ PYTHON_VERSION = "3.10"
 NODE_ENV = "production"
 NPM_CONFIG_PRODUCTION = "false"
 PYTHONUNBUFFERED = "true"
+PYTHONPATH = "/app"
 
 [build.nixpkgs]
 nodejs = "18"
