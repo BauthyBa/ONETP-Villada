@@ -28,7 +28,7 @@ class VentaDetalleSerializer(serializers.ModelSerializer):
 
 class VentaSerializer(serializers.ModelSerializer):
     """Serializer for the sale model."""
-    detalles = VentaDetalleSerializer(many=True, read_only=True)
+    items = VentaDetalleSerializer(many=True, read_only=True)
     total = serializers.DecimalField(
         max_digits=10, 
         decimal_places=2, 
@@ -43,7 +43,7 @@ class VentaSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'codigo', 'usuario', 'fecha_venta', 'fecha_viaje',
             'estado', 'metodo_pago', 'pago_confirmado',
-            'fecha_confirmacion_pago', 'notas', 'detalles',
+            'fecha_confirmacion_pago', 'notas', 'items',
             'total', 'cantidad_items', 'created_at', 'updated_at'
         ]
         read_only_fields = [

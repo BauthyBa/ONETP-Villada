@@ -140,7 +140,8 @@ const AdminDashboard = () => {
       }));
 
       // Categories
-      const categoriasData: Categoria[] = Array.isArray(categoriasRes.data) ? categoriasRes.data : categoriasRes.data?.results || [];
+      const categoriasData: Categoria[] = Array.isArray(categoriasRes.data) ? categoriasRes.data : 
+                                          (categoriasRes.data?.results || categoriasRes.data?.data || []);
       setCategorias(categoriasData);
 
       const paquetesData: Paquete[] = paquetesRaw.map((p: any) => ({
@@ -271,7 +272,7 @@ const AdminDashboard = () => {
 
   const handleConfirmarVenta = async (ventaId: number) => {
     try {
-      await axios.post(`/api/v1/ventas/${ventaId}/confirmar`);
+      await axios.post(`/api/v1/ventas/${ventaId}/confirmar_pago_existente/`);
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Error al confirmar la venta');
@@ -280,7 +281,7 @@ const AdminDashboard = () => {
 
   const handleCancelarVenta = async (ventaId: number) => {
     try {
-      await axios.post(`/api/v1/ventas/${ventaId}/cancelar`);
+      await axios.post(`/api/v1/ventas/${ventaId}/cancelar/`);
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Error al cancelar la venta');
