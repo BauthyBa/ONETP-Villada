@@ -1,4 +1,63 @@
-# Deployment en Railway
+# Railway Deployment Guide - ONIET
+
+## ✅ Deployment URL
+**Production URL:** `https://onetp-villada-production.up.railway.app`
+
+## 🔧 Railway Configuration
+
+### Variables de Entorno Requeridas
+Ve a tu proyecto en Railway → Variables → Add Variable
+
+```
+SECRET_KEY=tu_secret_key_super_seguro_aqui
+DEBUG=False
+ALLOWED_HOSTS=onetp-villada-production.up.railway.app,localhost,127.0.0.1
+DATABASE_URL=postgresql://... (Railway lo configura automáticamente)
+```
+
+### Configuración de CORS
+En Railway, agrega estas variables para permitir el frontend:
+
+```
+CORS_ALLOWED_ORIGINS=https://tu-frontend-vercel.vercel.app,http://localhost:3000
+```
+
+## 🌐 URLs Importantes
+
+### Backend (Railway)
+- **API Base:** `https://onetp-villada-production.up.railway.app/api/v1/`
+- **Admin Panel:** `https://onetp-villada-production.up.railway.app/admin/`
+- **Healthcheck:** `https://onetp-villada-production.up.railway.app/`
+
+### Frontend (Vercel)
+- **Frontend URL:** `https://tu-frontend-vercel.vercel.app` (configurar en Vercel)
+
+## 🔗 Configuración del Frontend
+
+En tu proyecto React, actualiza la configuración de la API:
+
+```javascript
+// En tu archivo de configuración de API
+const API_BASE_URL = 'https://onetp-villada-production.up.railway.app/api/v1';
+```
+
+## 👤 Usuario Admin
+- **Email:** admin@tour.com
+- **Password:** admin1234
+
+## 📝 Pasos de Configuración
+
+1. **Railway Variables:** Configura las variables de entorno
+2. **Frontend API:** Actualiza la URL base en tu React app
+3. **CORS:** Configura los orígenes permitidos
+4. **Test:** Verifica que todo funcione
+
+## 🚀 Verificación
+
+1. Visita: `https://onetp-villada-production.up.railway.app/`
+2. Deberías ver: `{"status": "ok", "message": "ONIET API is running"}`
+3. Admin: `https://onetp-villada-production.up.railway.app/admin/`
+4. API: `https://onetp-villada-production.up.railway.app/api/v1/`
 
 ## Pasos para deployar en Railway
 
