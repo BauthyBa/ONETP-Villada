@@ -50,13 +50,38 @@ const Perfil = () => {
     setSuccess('');
 
     try {
-      await axios.put('/api/v1/usuarios/me', formData);
+      // Map frontend field names to backend field names
+      const backendData = {
+        email: formData.email,
+        nombre: formData.name,      // name -> nombre
+        apellido: formData.surname, // surname -> apellido
+        telefono: formData.phone,   // phone -> telefono
+        direccion: formData.address // address -> direccion
+      };
+      
+      await axios.put('/api/v1/auth/me/', backendData);
       setSuccess('Perfil actualizado correctamente');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al actualizar el perfil');
+      console.error('Error updating profile:', err);
+      setError(err.response?.data?.detail || err.response?.data?.message || 'Error al actualizar el perfil');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    // Reset form to original user data
+    if (user) {
+      setFormData({
+        email: user.email,
+        name: user.name,
+        surname: user.surname || '',
+        phone: user.phone || '',
+        address: user.address || '',
+      });
+    }
+    setError('');
+    setSuccess('');
   };
 
   return (
@@ -166,13 +191,22 @@ const Perfil = () => {
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50"
-          >
-            {loading ? 'Actualizando...' : 'Actualizar Perfil'}
-          </button>
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50"
+            >
+              {loading ? 'Actualizando...' : 'Actualizar Perfil'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

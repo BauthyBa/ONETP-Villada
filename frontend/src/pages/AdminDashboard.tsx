@@ -176,17 +176,21 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       const packageData = {
-        ...packageForm,
+        nombre: packageForm.nombre,
+        descripcion: packageForm.descripcion,
         precio: parseFloat(packageForm.precio),
         duracion_dias: parseInt(packageForm.duracion_dias),
         cupo_maximo: parseInt(packageForm.cupo_maximo),
+        destino: packageForm.destino,
+        imagen_url: packageForm.imagen_url || '',
         fecha_inicio: packageForm.fecha_inicio,
         fecha_fin: packageForm.fecha_fin,
         categoria_id: packageForm.categoria_id || undefined,
+        is_active: true // Default to active for new packages
       };
 
       if (editingPackage) {
-        await axios.put(`/api/v1/paquetes/${editingPackage.id}`, packageData);
+        await axios.put(`/api/v1/paquetes/${editingPackage.id}/`, packageData);
       } else {
         await axios.post('/api/v1/paquetes/', packageData);
       }
@@ -207,7 +211,8 @@ const AdminDashboard = () => {
       });
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.detail || 'Error al guardar el paquete');
+      console.error('Error saving package:', err);
+      alert(err.response?.data?.detail || err.response?.data?.message || 'Error al guardar el paquete');
     }
   };
 
@@ -241,9 +246,25 @@ const AdminDashboard = () => {
 
   const handleToggleActive = async (paquete: Paquete) => {
     try {
-      await axios.put(`/api/v1/paquetes/${paquete.id}`, { is_active: !paquete.is_active });
+      // Send complete package data with toggled is_active status
+      const updatedPackage = {
+        nombre: paquete.nombre,
+        descripcion: paquete.descripcion,
+        precio: paquete.precio,
+        duracion_dias: paquete.duracion_dias,
+        cupo_maximo: paquete.cupo_maximo,
+        destino: paquete.destino || '',
+        imagen_url: paquete.imagen_url || '',
+        fecha_inicio: paquete.fecha_inicio || '',
+        fecha_fin: paquete.fecha_fin || '',
+        categoria_id: paquete.categoria?.id || '',
+        is_active: !paquete.is_active
+      };
+      
+      await axios.put(`/api/v1/paquetes/${paquete.id}/`, updatedPackage);
       fetchData();
     } catch (err: any) {
+      console.error('Error toggling package status:', err);
       alert(err.response?.data?.detail || 'Error al cambiar el estado');
     }
   };

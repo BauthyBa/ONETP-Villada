@@ -43,8 +43,15 @@ const Ventas = () => {
   const fetchVentas = async () => {
     try {
       const response = await axios.get('/api/v1/ventas/');
-      setVentas(response.data);
+      
+      // Handle different response formats - extract results if needed
+      const ventasData = Array.isArray(response.data) ? response.data : 
+                        (response.data?.results || response.data?.data || []);
+      
+      console.log('Ventas response:', response.data);
+      setVentas(ventasData);
     } catch (err) {
+      console.error('Error fetching ventas:', err);
       setError('Error al cargar las ventas');
     } finally {
       setLoading(false);

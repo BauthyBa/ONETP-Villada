@@ -15,6 +15,7 @@ interface Paquete {
   destino: string;
   imagen_url: string;
   activo: boolean;
+  is_active: boolean;
 }
 
 const Paquetes = () => {
@@ -106,7 +107,9 @@ const Paquetes = () => {
       }
     }
 
-    return matchesDestino && matchesSearch && matchesPrice && paquete.activo;
+    // Check both activo and is_active fields for compatibility
+    const isActive = paquete.activo ?? paquete.is_active ?? true;
+    return matchesDestino && matchesSearch && matchesPrice && isActive;
   });
 
   if (loading) {
