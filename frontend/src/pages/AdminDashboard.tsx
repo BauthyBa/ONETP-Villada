@@ -32,11 +32,11 @@ interface Venta {
     surname: string;
     email: string;
   };
-  fecha: string;
+  fecha_venta: string;
   total: number;
   estado: string;
   metodo_pago: string;
-  detalles: Array<{
+  items: Array<{
     id: number;
     paquete: {
       nombre: string;
@@ -741,7 +741,7 @@ const AdminDashboard = () => {
                           <div className="text-sm text-gray-500">{venta.usuario.email}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(venta.fecha).toLocaleDateString()}
+                          {new Date(venta.fecha_venta).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           ${venta.total.toLocaleString()}

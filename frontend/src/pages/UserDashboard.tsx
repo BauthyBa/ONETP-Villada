@@ -5,11 +5,11 @@ import axios from 'axios';
 
 interface Venta {
   id: number;
-  fecha: string;
+  fecha_venta: string;
   total: number;
   estado: string;
   metodo_pago: string;
-  detalles: Array<{
+  items: Array<{
     id: number;
     paquete: {
       nombre: string;
@@ -259,7 +259,7 @@ const UserDashboard = () => {
                       <div>
                         <div className="font-semibold">Compra #{venta.id}</div>
                         <div className="text-sm text-gray-600">
-                          {new Date(venta.fecha).toLocaleDateString()}
+                          {new Date(venta.fecha_venta).toLocaleDateString()}
                         </div>
                       </div>
                       <div className="text-right">
@@ -272,10 +272,10 @@ const UserDashboard = () => {
                       </div>
                     </div>
                     <div className="text-sm text-gray-600">
-                      {venta.detalles && venta.detalles.map((detalle, index) => (
-                        <div key={detalle.id}>
-                          {detalle.paquete.nombre} - {detalle.paquete.destino}
-                          {index < venta.detalles.length - 1 && ', '}
+                      {venta.items && venta.items.map((item, index) => (
+                        <div key={item.id}>
+                          {item.paquete.nombre} - {item.paquete.destino}
+                          {index < venta.items.length - 1 && ', '}
                         </div>
                       ))}
                     </div>

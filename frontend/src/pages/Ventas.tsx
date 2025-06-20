@@ -19,11 +19,11 @@ interface DetalleVenta {
 
 interface Venta {
   id: number;
-  fecha: string;
+  fecha_venta: string;
   total: number;
   estado: string;
   metodo_pago: string;
-  detalles: DetalleVenta[];
+  items: DetalleVenta[];
 }
 
 const Ventas = () => {
@@ -203,7 +203,7 @@ const Ventas = () => {
                         Pedido #{venta.id}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        📅 {new Date(venta.fecha).toLocaleDateString()} • 
+                        📅 {new Date(venta.fecha_venta).toLocaleDateString()} • 
                         💳 {venta.metodo_pago || 'No especificado'}
                       </p>
                     </div>
@@ -222,7 +222,7 @@ const Ventas = () => {
                 <div className="p-4">
                   <h4 className="font-medium text-gray-900 mb-4">Paquetes incluidos:</h4>
                   <div className="space-y-3">
-                    {venta.detalles.map((detalle) => (
+                    {venta.items.map((detalle) => (
                       <div key={detalle.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-lg">
