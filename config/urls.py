@@ -14,12 +14,51 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
 def healthcheck(request):
     """Simple healthcheck endpoint for Railway deployment."""
     return JsonResponse({"status": "ok", "message": "ONIET API is running"})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def direct_login(request):
+    """Endpoint directo para login de admin"""
+    try:
+        email = request.data.get('email', 'admin@tourpackages.com')
+        password = request.data.get('password', 'admin1234')
+        
+        # Buscar usuario
+        user = User.objects.filter(email=email).first()
+        
+        if user and user.check_password(password):
+            # Generar tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            
+            return Response({
+                'message': 'Login exitoso',
+                'access': access_token,
+                'refresh': str(refresh),
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'nombre': user.nombre,
+                    'apellido': user.apellido,
+                    'tipo_usuario': user.tipo_usuario
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'error': 'Credenciales inválidas'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+            
+    except Exception as e:
+        return Response({
+            'error': f'Error en login: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -29,6 +68,7 @@ def test_auth(request):
         'message': 'API funcionando correctamente',
         'auth_endpoints': {
             'login': '/api/v1/auth/token/',
+            'direct_login': '/direct-login/',
             'register': '/api/v1/auth/register/',
             'me': '/api/v1/auth/me/',
             'admin_credentials': {
@@ -142,6 +182,9 @@ def create_admin_simple(request):
 urlpatterns = [
     # Healthcheck endpoint
     path('', healthcheck, name='healthcheck'),
+    
+    # Direct login endpoint
+    path('direct-login/', direct_login, name='direct_login'),
     
     # Test endpoints
     path('test-auth/', test_auth, name='test_auth'),
