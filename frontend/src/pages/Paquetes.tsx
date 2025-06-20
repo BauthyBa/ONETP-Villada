@@ -33,9 +33,17 @@ const Paquetes = () => {
 
   const fetchPaquetes = async () => {
     try {
+      setError('');
       const response = await axios.get('/api/v1/paquetes/');
-      setPaquetes(response.data);
-    } catch (err) {
+      
+      // Ensure we get an array, handle different response formats
+      const paquetesData = Array.isArray(response.data) ? response.data : 
+                          (response.data?.results || response.data?.data || []);
+      
+      console.log('Paquetes response:', response.data);
+      setPaquetes(paquetesData);
+    } catch (err: any) {
+      console.error('Error fetching paquetes:', err);
       setError('Error al cargar los paquetes');
     } finally {
       setLoading(false);
@@ -72,9 +80,11 @@ const Paquetes = () => {
     return icons[destino] || '🌎';
   };
 
-  const uniqueDestinos = Array.from(new Set(paquetes.map((p) => p.destino)));
+  // Ensure paquetes is always an array before using map
+  const paquetesArray = Array.isArray(paquetes) ? paquetes : [];
+  const uniqueDestinos = Array.from(new Set(paquetesArray.map((p) => p.destino)));
 
-  const filteredPaquetes = paquetes.filter((paquete) => {
+  const filteredPaquetes = paquetesArray.filter((paquete) => {
     const matchesDestino = !selectedDestino || paquete.destino === selectedDestino;
     const matchesSearch = !searchTerm || 
       paquete.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,7 +113,7 @@ const Paquetes = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">⏳</div>
+          <div className="text-6xl mb-4">⏳</div>
           <div className="text-lg text-gray-600">Cargando paquetes...</div>
         </div>
       </div>
@@ -114,8 +124,14 @@ const Paquetes = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">❌</div>
-          <div className="text-lg text-red-600">{error}</div>
+          <div className="text-6xl mb-4">❌</div>
+          <div className="text-lg text-red-600 mb-4">{error}</div>
+          <button
+            onClick={fetchPaquetes}
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -269,28 +285,23 @@ const Paquetes = () => {
                           ? 'bg-yellow-100 text-yellow-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {paquete.cupo_disponible} de {paquete.cupo_maximo}
+                        {paquete.cupo_disponible} cupos
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleAddToCart(paquete.id)}
-                        disabled={paquete.cupo_disponible === 0 || loadingAdd === paquete.id}
-                        className={`px-4 py-2 rounded text-sm font-medium ${
+                        disabled={loadingAdd === paquete.id || paquete.cupo_disponible === 0}
+                        className={`px-4 py-2 rounded-md text-sm font-medium ${
                           paquete.cupo_disponible === 0
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : loadingAdd === paquete.id
-                            ? 'bg-blue-300 text-blue-700 cursor-wait'
+                            ? 'bg-blue-400 text-white cursor-wait'
                             : 'bg-blue-600 text-white hover:bg-blue-700'
                         }`}
                       >
-                        {loadingAdd === paquete.id ? (
-                          <>⏳ Agregando...</>
-                        ) : paquete.cupo_disponible === 0 ? (
-                          <>Sin stock</>
-                        ) : (
-                          <>+ Agregar al carrito</>
-                        )}
+                        {loadingAdd === paquete.id ? 'Agregando...' : 
+                         paquete.cupo_disponible === 0 ? 'Sin cupo' : 'Agregar'}
                       </button>
                     </td>
                   </tr>

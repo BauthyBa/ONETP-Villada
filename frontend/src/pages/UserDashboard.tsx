@@ -70,8 +70,11 @@ const UserDashboard = () => {
         const carritoRes = await axios.get('/api/v1/carritos/activo');
         carritoData = carritoRes.data;
         console.log('Carrito response:', carritoRes.data);
-      } catch (carritoError) {
-        console.error('Error fetching carrito:', carritoError);
+      } catch (carritoError: any) {
+        // Don't log 404 errors as they're normal when user has no active cart
+        if (carritoError.response?.status !== 404) {
+          console.error('Error fetching carrito:', carritoError);
+        }
         carritoData = null;
       }
 
