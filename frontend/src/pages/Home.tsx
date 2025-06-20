@@ -171,8 +171,8 @@ const Home = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-12">
-        <div className="container mx-auto px-4">
+      <footer className="bg-gray-800 text-white py-12 w-full">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-4">Tour Packages</h3>
             <p className="text-gray-400 mb-4">

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNotification } from '../contexts/NotificationContext';
+import Footer from '../components/Footer';
 
 interface Paquete {
   id: number;
@@ -141,21 +142,21 @@ const Paquetes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">📋 Lista de Paquetes Turísticos</h1>
-          <p className="text-gray-600 mt-2">Selecciona los paquetes que deseas agregar a tu carrito</p>
+        <div className="container mx-auto px-4 py-4 md:py-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">📋 Paquetes Turísticos</h1>
+          <p className="text-gray-600 mt-2 text-sm md:text-base">Selecciona los paquetes que deseas agregar a tu carrito</p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 flex-1">
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
-            <div>
+            <div className="sm:col-span-2 lg:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
               <input
                 type="text"
@@ -206,9 +207,9 @@ const Paquetes = () => {
                   setPriceRange('');
                   setSearchTerm('');
                 }}
-                className="w-full bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                className="w-full bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
               >
-                Limpiar
+                🗑️ Limpiar
               </button>
             </div>
           </div>
@@ -229,91 +230,153 @@ const Paquetes = () => {
             <p className="text-gray-600 mb-4">Intenta ajustar tus filtros</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Paquete
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Destino
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Duración
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Precio
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Disponible
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acción
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+          <>
+            {/* Mobile View - Cards */}
+            <div className="block md:hidden">
+              <div className="space-y-4">
                 {filteredPaquetes.map((paquete) => (
-                  <tr key={paquete.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {paquete.nombre}
+                  <div key={paquete.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-xl">
+                          {getDestinoIcon(paquete.destino)}
                         </div>
-                        <div className="text-sm text-gray-500 max-w-xs truncate">
-                          {paquete.descripcion}
+                        <div>
+                          <h3 className="font-semibold text-gray-900 text-sm">{paquete.nombre}</h3>
+                          <p className="text-xs text-gray-600">{paquete.destino} • {paquete.duracion_dias} días</p>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center">
-                        <span className="mr-2">{getDestinoIcon(paquete.destino)}</span>
-                        <span className="text-sm text-gray-900">{paquete.destino}</span>
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {paquete.duracion_dias} días
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        ${paquete.precio.toLocaleString()}
+                      <div className="text-right">
+                        <div className="font-bold text-blue-600 text-sm">${paquete.precio.toLocaleString()}</div>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          paquete.cupo_disponible > 5 
+                            ? 'bg-green-100 text-green-800' 
+                            : paquete.cupo_disponible > 0 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {paquete.cupo_disponible} cupos
+                        </span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        paquete.cupo_disponible > 5 
-                          ? 'bg-green-100 text-green-800' 
-                          : paquete.cupo_disponible > 0 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {paquete.cupo_disponible} cupos
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    </div>
+                    
+                    <p className="text-gray-600 text-xs mb-3 line-clamp-2">{paquete.descripcion}</p>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="text-xs text-gray-500">
+                        📅 {new Date(paquete.fecha_inicio).toLocaleDateString()} - {new Date(paquete.fecha_fin).toLocaleDateString()}
+                      </div>
                       <button
                         onClick={() => handleAddToCart(paquete.id)}
                         disabled={loadingAdd === paquete.id || paquete.cupo_disponible === 0}
-                        className={`px-4 py-2 rounded-md text-sm font-medium ${
+                        className={`px-4 py-2 rounded-md text-xs font-medium transition-colors ${
                           paquete.cupo_disponible === 0
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : loadingAdd === paquete.id
                             ? 'bg-blue-400 text-white cursor-wait'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
                         }`}
                       >
                         {loadingAdd === paquete.id ? 'Agregando...' : 
-                         paquete.cupo_disponible === 0 ? 'Sin cupo' : 'Agregar'}
+                         paquete.cupo_disponible === 0 ? 'Sin cupo' : '🛒 Agregar'}
                       </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+
+            {/* Desktop View - Table */}
+            <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Paquete
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Destino
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Duración
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Precio
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Disponible
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acción
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredPaquetes.map((paquete) => (
+                      <tr key={paquete.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {paquete.nombre}
+                            </div>
+                            <div className="text-sm text-gray-500 max-w-xs truncate">
+                              {paquete.descripcion}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center">
+                            <span className="mr-2">{getDestinoIcon(paquete.destino)}</span>
+                            <span className="text-sm text-gray-900">{paquete.destino}</span>
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {paquete.duracion_dias} días
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            ${paquete.precio.toLocaleString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            paquete.cupo_disponible > 5 
+                              ? 'bg-green-100 text-green-800' 
+                              : paquete.cupo_disponible > 0 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {paquete.cupo_disponible} cupos
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => handleAddToCart(paquete.id)}
+                            disabled={loadingAdd === paquete.id || paquete.cupo_disponible === 0}
+                            className={`px-4 py-2 rounded-md text-sm font-medium ${
+                              paquete.cupo_disponible === 0
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : loadingAdd === paquete.id
+                                ? 'bg-blue-400 text-white cursor-wait'
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                          >
+                            {loadingAdd === paquete.id ? 'Agregando...' : 
+                             paquete.cupo_disponible === 0 ? 'Sin cupo' : 'Agregar'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </div>
+      
+      <Footer />
     </div>
   );
 };
