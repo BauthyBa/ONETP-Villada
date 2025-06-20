@@ -2,7 +2,7 @@
 nixPkgs = ["python3", "python3Packages.pip", "python3Packages.setuptools"]
 
 [phases.install]
-cmds = ["pip3 install -r requirements.txt"]
+cmds = ["pip3 install --break-system-packages -r requirements.txt"]
 
 [phases.build]
 cmds = ["python3 manage.py collectstatic --noinput"]
