@@ -1,5 +1,8 @@
 # Render Deployment Guide - ONIET
 
+## ✅ Deployment URL
+**Production URL:** `https://onetp-backend.onrender.com`
+
 ## 🚀 Render Configuration
 
 ### 1. Crear cuenta en Render
@@ -14,13 +17,13 @@
 4. Configura el servicio:
 
 **Configuración básica:**
-- **Name:** `oniet-backend`
+- **Name:** `onetp-backend`
 - **Environment:** `Python 3`
 - **Region:** `Oregon (US West)`
 - **Branch:** `main`
 - **Root Directory:** (dejar vacío)
 - **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+- **Start Command:** `python manage.py migrate && python setup_admin.py && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
 
 ### 3. Configurar Variables de Entorno
 En la sección "Environment Variables":
@@ -29,7 +32,7 @@ En la sección "Environment Variables":
 PYTHON_VERSION=3.12.0
 SECRET_KEY=tu_secret_key_super_seguro_aqui_123456789
 DEBUG=False
-ALLOWED_HOSTS=oniet-backend.onrender.com,localhost,127.0.0.1
+ALLOWED_HOSTS=onetp-backend.onrender.com,localhost,127.0.0.1
 DATABASE_URL=postgresql://... (Render lo configura automáticamente)
 ```
 
@@ -37,9 +40,9 @@ DATABASE_URL=postgresql://... (Render lo configura automáticamente)
 1. Click en "New +"
 2. Selecciona "PostgreSQL"
 3. Configura:
-   - **Name:** `oniet-database`
-   - **Database:** `oniet`
-   - **User:** `oniet_user`
+   - **Name:** `onetp-database`
+   - **Database:** `onetp`
+   - **User:** `onetp_user`
    - **Plan:** `Free`
 
 ### 5. Conectar Base de Datos al Web Service
@@ -52,9 +55,11 @@ DATABASE_URL=postgresql://... (Render lo configura automáticamente)
 ## 🌐 URLs Importantes
 
 ### Backend (Render)
-- **API Base:** `https://oniet-backend.onrender.com/api/v1/`
-- **Admin Panel:** `https://oniet-backend.onrender.com/admin/`
-- **Healthcheck:** `https://oniet-backend.onrender.com/`
+- **API Base:** `https://onetp-backend.onrender.com/api/v1/`
+- **Admin Panel:** `https://onetp-backend.onrender.com/admin/`
+- **Healthcheck:** `https://onetp-backend.onrender.com/`
+- **Verify Admin:** `https://onetp-backend.onrender.com/verify-admin/`
+- **Create Admin:** `https://onetp-backend.onrender.com/create-admin/`
 
 ### Frontend (Vercel)
 - **Frontend URL:** `https://tu-frontend-vercel.vercel.app`
@@ -64,11 +69,11 @@ DATABASE_URL=postgresql://... (Render lo configura automáticamente)
 Actualiza tu archivo `frontend/.env.production`:
 
 ```
-REACT_APP_API_URL=https://oniet-backend.onrender.com
+REACT_APP_API_URL=https://onetp-backend.onrender.com
 ```
 
 ## 👤 Usuario Admin
-- **Email:** admin@tour.com
+- **Email:** admin@tourpackages.com
 - **Password:** admin1234
 
 ## 📝 Pasos de Configuración
@@ -82,10 +87,10 @@ REACT_APP_API_URL=https://oniet-backend.onrender.com
 
 ## 🚀 Verificación
 
-1. Visita: `https://oniet-backend.onrender.com/`
+1. Visita: `https://onetp-backend.onrender.com/`
 2. Deberías ver: `{"status": "ok", "message": "ONIET API is running"}`
-3. Admin: `https://oniet-backend.onrender.com/admin/`
-4. API: `https://oniet-backend.onrender.com/api/v1/`
+3. Admin: `https://onetp-backend.onrender.com/admin/`
+4. API: `https://onetp-backend.onrender.com/api/v1/`
 
 ## 🔧 Comandos Útiles
 
@@ -100,9 +105,9 @@ En Render Dashboard → Shell
 python manage.py shell -c "
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(email='admin@tour.com').exists():
+if not User.objects.filter(email='admin@tourpackages.com').exists():
     User.objects.create_superuser(
-        email='admin@tour.com',
+        email='admin@tourpackages.com',
         password='admin1234',
         nombre='Admin',
         apellido='User',
@@ -132,6 +137,11 @@ python manage.py collectstatic --noinput
 1. Verifica que `DATABASE_URL` esté configurada
 2. Verifica que la base de datos esté activa
 3. Ejecuta migraciones
+
+### Error 401 en frontend
+1. Verifica que `REACT_APP_API_URL` esté configurada correctamente
+2. Verifica que el token JWT sea válido
+3. Verifica que CORS esté configurado correctamente
 
 ## ⚡ Ventajas de Render
 
