@@ -9,6 +9,7 @@ from .views import usuarios as usuarios_views
 from .views import paquetes as paquetes_views
 from .views import carritos as carritos_views
 from .views import ventas as ventas_views
+from .views import create_admin_user
 
 # Create a router
 router = DefaultRouter()
@@ -28,6 +29,9 @@ urlpatterns = [
     path('auth/register/', usuarios_views.RegisterView.as_view(), name='auth_register'),
     path('auth/login/', usuarios_views.LoginView.as_view(), name='auth_login'),
     path('auth/me/', usuarios_views.UserProfileView.as_view(), name='user_profile'),
+    
+    # Admin creation endpoint (temporal)
+    path('create-admin/', create_admin_user, name='create_admin'),
     
     # Additional endpoints
     path('paquetes/categoria/<str:categoria>/', 
