@@ -41,6 +41,7 @@ const UserDashboard = () => {
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [carrito, setCarrito] = useState<Carrito | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUserData();
@@ -48,15 +49,37 @@ const UserDashboard = () => {
 
   const fetchUserData = async () => {
     try {
-      const [ventasRes, carritoRes] = await Promise.all([
-        axios.get('/api/v1/ventas/'),
-        axios.get('/api/v1/carritos/activo').catch(() => ({ data: null }))
-      ]);
+      setError(null);
+      
+      // Fetch ventas with proper error handling
+      let ventasData: Venta[] = [];
+      try {
+        const ventasRes = await axios.get('/api/v1/ventas/');
+        // Ensure we get an array, handle different response formats
+        ventasData = Array.isArray(ventasRes.data) ? ventasRes.data : 
+                    (ventasRes.data?.results || ventasRes.data?.data || []);
+        console.log('Ventas response:', ventasRes.data);
+      } catch (ventasError) {
+        console.error('Error fetching ventas:', ventasError);
+        ventasData = [];
+      }
 
-      setVentas(ventasRes.data);
-      setCarrito(carritoRes.data);
+      // Fetch carrito with proper error handling
+      let carritoData: Carrito | null = null;
+      try {
+        const carritoRes = await axios.get('/api/v1/carritos/activo');
+        carritoData = carritoRes.data;
+        console.log('Carrito response:', carritoRes.data);
+      } catch (carritoError) {
+        console.error('Error fetching carrito:', carritoError);
+        carritoData = null;
+      }
+
+      setVentas(ventasData);
+      setCarrito(carritoData);
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setError('Error al cargar los datos del usuario');
     } finally {
       setLoading(false);
     }
@@ -75,11 +98,14 @@ const UserDashboard = () => {
     }
   };
 
-  const totalGastado = ventas
+  // Ensure ventas is always an array before using filter
+  const ventasArray = Array.isArray(ventas) ? ventas : [];
+  
+  const totalGastado = ventasArray
     .filter(v => v.estado === 'confirmada')
     .reduce((sum, v) => sum + v.total, 0);
 
-  const viajesRealizados = ventas.filter(v => v.estado === 'confirmada').length;
+  const viajesRealizados = ventasArray.filter(v => v.estado === 'confirmada').length;
 
   if (loading) {
     return (
@@ -87,6 +113,23 @@ const UserDashboard = () => {
         <div className="text-center">
           <div className="text-6xl mb-4">⏳</div>
           <div className="text-xl text-gray-600">Cargando tu dashboard...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <div className="text-xl text-red-600 mb-4">{error}</div>
+          <button
+            onClick={fetchUserData}
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -139,7 +182,7 @@ const UserDashboard = () => {
               <div className="text-4xl mr-4">🛒</div>
               <div>
                 <div className="text-3xl font-bold text-purple-600">
-                  {carrito?.items.length || 0}
+                  {carrito?.items?.length || 0}
                 </div>
                 <div className="text-gray-600">En el Carrito</div>
               </div>
@@ -165,7 +208,7 @@ const UserDashboard = () => {
             >
               <div className="text-3xl mb-2">🛒</div>
               <div className="font-semibold">Ver Carrito</div>
-              {carrito && carrito.items.length > 0 && (
+              {carrito && carrito.items && carrito.items.length > 0 && (
                 <div className="text-sm opacity-90">
                   {carrito.items.length} items
                 </div>
@@ -194,7 +237,7 @@ const UserDashboard = () => {
           {/* Recent Purchases */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Compras Recientes</h3>
-            {ventas.length === 0 ? (
+            {ventasArray.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">🛍️</div>
                 <p className="text-gray-600 mb-4">Aún no has realizado ninguna compra</p>
@@ -207,7 +250,7 @@ const UserDashboard = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {ventas.slice(0, 3).map((venta) => (
+                {ventasArray.slice(0, 3).map((venta) => (
                   <div key={venta.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
@@ -226,7 +269,7 @@ const UserDashboard = () => {
                       </div>
                     </div>
                     <div className="text-sm text-gray-600">
-                      {venta.detalles.map((detalle, index) => (
+                      {venta.detalles && venta.detalles.map((detalle, index) => (
                         <div key={detalle.id}>
                           {detalle.paquete.nombre} - {detalle.paquete.destino}
                           {index < venta.detalles.length - 1 && ', '}
@@ -235,7 +278,7 @@ const UserDashboard = () => {
                     </div>
                   </div>
                 ))}
-                {ventas.length > 3 && (
+                {ventasArray.length > 3 && (
                   <div className="text-center">
                     <Link
                       to="/ventas"
@@ -252,7 +295,7 @@ const UserDashboard = () => {
           {/* Current Cart */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-4">🛒 Carrito Actual</h3>
-            {!carrito || carrito.items.length === 0 ? (
+            {!carrito || !carrito.items || carrito.items.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">🛒</div>
                 <p className="text-gray-600 mb-4">Tu carrito está vacío</p>
@@ -267,34 +310,34 @@ const UserDashboard = () => {
               <div className="space-y-4">
                 {carrito.items.map((item) => (
                   <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start mb-2">
                       <div>
                         <div className="font-semibold">{item.paquete.nombre}</div>
                         <div className="text-sm text-gray-600">{item.paquete.destino}</div>
-                        <div className="text-sm text-gray-600">
-                          Cantidad: {item.cantidad}
-                        </div>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-blue-600">
                           ${item.subtotal.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Cantidad: {item.cantidad}
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
                 <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-bold text-lg">Total:</span>
-                    <span className="font-bold text-xl text-green-600">
+                  <div className="flex justify-between items-center">
+                    <div className="font-semibold">Total:</div>
+                    <div className="font-bold text-lg text-blue-600">
                       ${carrito.total.toLocaleString()}
-                    </span>
+                    </div>
                   </div>
                   <Link
                     to="/carrito"
-                    className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white py-3 rounded-lg font-semibold text-center block hover:from-green-600 hover:to-blue-700 transition-all duration-300"
+                    className="block w-full bg-blue-500 text-white text-center py-2 rounded-lg hover:bg-blue-600 transition-colors mt-3"
                   >
-                    Proceder al Pago
+                    Ver Carrito Completo
                   </Link>
                 </div>
               </div>
