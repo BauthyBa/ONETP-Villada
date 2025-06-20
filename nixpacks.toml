@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['python39', 'nodejs-18_x']
+nixPkgs = ['python39', 'pip']
 
 [phases.install]
 cmds = [
@@ -12,4 +12,7 @@ cmds = [
 ]
 
 [start]
-cmd = 'gunicorn config.wsgi:application --bind 0.0.0.0:$PORT' 
+cmd = 'gunicorn config.wsgi:application --bind 0.0.0.0:$PORT'
+
+[variables]
+NIXPACKS_PYTHON_VERSION = '3.9' 

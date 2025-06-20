@@ -1,0 +1,14 @@
+frontend/
+node_modules/
+package.json
+package-lock.json
+*.md
+.git/
+.gitignore
+venv/
+venv_django/
+__pycache__/
+*.pyc
+.env
+db.sqlite3
+*.log 
