@@ -7,8 +7,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
+
+def healthcheck(request):
+    """Simple healthcheck endpoint for Railway deployment."""
+    return JsonResponse({"status": "ok", "message": "ONIET API is running"})
 
 urlpatterns = [
+    # Healthcheck endpoint
+    path('', healthcheck, name='healthcheck'),
+    
     # Django admin
     path('admin/', admin.site.urls),
     
