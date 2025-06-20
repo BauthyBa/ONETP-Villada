@@ -11,4 +11,6 @@ __pycache__/
 *.pyc
 .env
 db.sqlite3
-*.log 
+*.log
+!requirements.txt
+!requirements-combined.txt 

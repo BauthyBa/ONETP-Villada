@@ -1,0 +1,2 @@
+# Main requirements file for Railway deployment
+-r requirements-combined.txt 
