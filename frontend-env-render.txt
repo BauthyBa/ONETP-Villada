@@ -1,0 +1,4 @@
+# Render environment variables for ONIET Frontend
+# Copy this content to frontend/.env.production
+
+REACT_APP_API_URL=https://oniet-backend.onrender.com 
