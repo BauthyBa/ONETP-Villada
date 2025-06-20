@@ -66,7 +66,6 @@ def create_default(apps, schema_editor):
     for i in range(10):
         destino_nombre, desc = random.choice(all_destinos)
         categoria = random.choice(categorias)
-        fecha_inicio, fecha_fin = random_dates()
 
         Paquete.objects.get_or_create(
             nombre=f"{destino_nombre} Experience {i+1}",
@@ -75,10 +74,10 @@ def create_default(apps, schema_editor):
                 'precio': random_price(),
                 'duracion_dias': random.randint(3, 14),
                 'cupo_maximo': random.randint(15, 40),
-                'destino': destino_nombre,
-                'fecha_inicio': fecha_inicio,
-                'fecha_fin': fecha_fin,
+                'dificultad': random.choice(['baja', 'media', 'alta']),
                 'categoria': categoria,
+                'incluye': '',
+                'no_incluye': '',
             }
         )
 
