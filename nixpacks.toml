@@ -2,10 +2,16 @@
 nixPkgs = ["python3", "python3Packages.pip", "python3Packages.setuptools"]
 
 [phases.install]
-cmds = ["pip3 install --break-system-packages -r requirements.txt"]
+cmds = [
+  "pip3 install --break-system-packages -r requirements.txt",
+  "pip3 list | grep gunicorn"
+]
 
 [phases.build]
-cmds = ["python3 manage.py collectstatic --noinput"]
+cmds = [
+  "python3 manage.py collectstatic --noinput",
+  "python3 manage.py check --deploy"
+]
 
 [start]
-cmd = "python3 manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT" 
+cmd = "python3 manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120" 
