@@ -15,10 +15,11 @@ interface Paquete {
   duracion_dias: number;
   cupo_maximo: number;
   cupo_disponible: number;
-  fecha_inicio: string;
-  fecha_fin: string;
-  destino: string;
-  imagen_url: string;
+  imagen_url?: string;
+  destino?: string;
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  is_active: boolean;
   activo: boolean;
   categoria?: Categoria;
 }
@@ -112,19 +113,15 @@ const AdminDashboard = () => {
       ]);
 
       // Handle different response formats - extract results if needed
-      const paquetesData = Array.isArray(paquetesRes.data) ? paquetesRes.data : 
+      const paquetesRaw = Array.isArray(paquetesRes.data) ? paquetesRes.data : 
                           (paquetesRes.data?.results || paquetesRes.data?.data || []);
-      const ventasData = Array.isArray(ventasRes.data) ? ventasRes.data : 
-                        (ventasRes.data?.results || ventasRes.data?.data || []);
-      const usuariosRaw = Array.isArray(usuariosRes.data) ? usuariosRes.data : 
-                          (usuariosRes.data?.results || usuariosRes.data?.data || []);
 
       console.log('Admin - Paquetes response:', paquetesRes.data);
       console.log('Admin - Ventas response:', ventasRes.data);
       console.log('Admin - Usuarios response:', usuariosRes.data);
 
       // Map backend keys to frontend expected ones
-      const usuariosData: Usuario[] = usuariosRaw.map((u: any) => ({
+      const usuariosData: Usuario[] = usuariosRes.data.map((u: any) => ({
         id: u.id,
         email: u.email,
         name: u.nombre || u.name || '',
@@ -140,18 +137,24 @@ const AdminDashboard = () => {
       const categoriasData: Categoria[] = Array.isArray(categoriasRes.data) ? categoriasRes.data : categoriasRes.data?.results || [];
       setCategorias(categoriasData);
 
+      const paquetesData: Paquete[] = paquetesRaw.map((p: any) => ({
+        ...p,
+        activo: p.is_active ?? p.activo ?? false,
+        is_active: p.is_active ?? p.activo ?? false,
+      }));
+
       setPaquetes(paquetesData);
-      setVentas(ventasData);
+      setVentas(ventasRes.data);
       setUsuarios(usuariosData);
 
       // Calculate stats using the processed data
-      const ingresos = ventasData
+      const ingresos = ventasRes.data
         .filter((v: Venta) => v.estado === 'confirmada')
         .reduce((sum: number, v: Venta) => sum + v.total, 0);
 
       setStats({
         total_paquetes: paquetesData.length,
-        total_ventas: ventasData.length,
+        total_ventas: ventasRes.data.length,
         total_usuarios: usuariosData.length,
         ingresos_totales: ingresos
       });
@@ -210,10 +213,10 @@ const AdminDashboard = () => {
       precio: paquete.precio.toString(),
       duracion_dias: paquete.duracion_dias.toString(),
       cupo_maximo: paquete.cupo_maximo.toString(),
-      fecha_inicio: paquete.fecha_inicio.split('T')[0],
-      fecha_fin: paquete.fecha_fin.split('T')[0],
-      destino: paquete.destino,
-      imagen_url: paquete.imagen_url,
+      fecha_inicio: paquete.fecha_inicio ? paquete.fecha_inicio.split('T')[0] : '',
+      fecha_fin: paquete.fecha_fin ? paquete.fecha_fin.split('T')[0] : '',
+      destino: paquete.destino || '',
+      imagen_url: paquete.imagen_url || '',
       categoria_id: paquete.categoria?.id || ''
     });
     setShowPackageForm(true);
@@ -227,6 +230,15 @@ const AdminDashboard = () => {
       } catch (err: any) {
         alert(err.response?.data?.detail || 'Error al eliminar el paquete');
       }
+    }
+  };
+
+  const handleToggleActive = async (paquete: Paquete) => {
+    try {
+      await axios.put(`/api/v1/paquetes/${paquete.id}`, { is_active: !paquete.is_active });
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Error al cambiar el estado');
     }
   };
 
@@ -403,7 +415,9 @@ const AdminDashboard = () => {
                     <div key={paquete.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <div>
                         <div className="font-medium">{paquete.nombre}</div>
-                        <div className="text-sm text-gray-600">{paquete.destino}</div>
+                        {paquete.destino && (
+                          <div className="text-sm text-gray-600">{paquete.destino}</div>
+                        )}
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-blue-600">${paquete.precio.toLocaleString()}</div>
@@ -612,7 +626,7 @@ const AdminDashboard = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {paquete.destino}
+                          {paquete.destino || '—'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           ${paquete.precio.toLocaleString()}
@@ -627,10 +641,10 @@ const AdminDashboard = () => {
                             {paquete.activo ? 'Activo' : 'Inactivo'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                           <button
                             onClick={() => handleEditPackage(paquete)}
-                            className="text-blue-600 hover:text-blue-900 mr-4"
+                            className="text-blue-600 hover:text-blue-900"
                           >
                             ✏️ Editar
                           </button>
@@ -639,6 +653,12 @@ const AdminDashboard = () => {
                             className="text-red-600 hover:text-red-900"
                           >
                             🗑️ Eliminar
+                          </button>
+                          <button
+                            onClick={() => handleToggleActive(paquete)}
+                            className={`${paquete.activo ? 'text-yellow-600' : 'text-green-600'} hover:underline`}
+                          >
+                            {paquete.activo ? 'Desactivar' : 'Activar'}
                           </button>
                         </td>
                       </tr>
