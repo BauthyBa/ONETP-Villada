@@ -24,8 +24,13 @@ class BaseViewSet(viewsets.ModelViewSet):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if self.action in ['list', 'retrieve']:
+        # Admin users can do everything
+        if self.request.user.is_staff or self.request.user.is_superuser:
             permission_classes = [IsAuthenticated]
+        # Regular users can only read
+        elif self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticated]
+        # Regular users cannot create/update/delete
         elif self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [IsAdminUser]
         else:
