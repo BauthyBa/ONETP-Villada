@@ -14,16 +14,29 @@ python manage.py migrate
 # Create superuser if it doesn't exist
 python manage.py shell -c "
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 User = get_user_model()
-if not User.objects.filter(email='admin@tour.com').exists():
-    User.objects.create_superuser(
-        email='admin@tour.com',
-        password='admin1234',
-        nombre='Admin',
-        apellido='User',
-        tipo_usuario='admin'
-    )
-    print('Superuser created successfully')
+admin_user, created = User.objects.get_or_create(
+    email='admin@tourpackages.com',
+    defaults={
+        'nombre': 'Admin',
+        'apellido': 'User',
+        'tipo_usuario': 'admin',
+        'is_staff': True,
+        'is_superuser': True,
+        'password': make_password('admin1234')
+    }
+)
+if created:
+    print('✅ Superuser created successfully!')
 else:
-    print('Superuser already exists')
+    # Update password and permissions
+    admin_user.password = make_password('admin1234')
+    admin_user.is_staff = True
+    admin_user.is_superuser = True
+    admin_user.tipo_usuario = 'admin'
+    admin_user.save()
+    print('✅ Superuser updated successfully!')
+print(f'📧 Email: {admin_user.email}')
+print(f'🔑 Password: admin1234')
 " 
