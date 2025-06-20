@@ -27,7 +27,7 @@ class Venta(BaseModel):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    codigo = models.CharField(_('código'), max_length=20, unique=True)
+    codigo = models.CharField(_('código'), max_length=20, unique=True, blank=True)
     usuario = models.ForeignKey(
         Usuario,
         on_delete=models.PROTECT,
@@ -85,6 +85,23 @@ class Venta(BaseModel):
         """Cancel the sale."""
         self.estado = 'cancelada'
         self.save()
+    
+    def save(self, *args, **kwargs):
+        """Generate unique code if not provided."""
+        if not self.codigo:
+            # Generate a unique code based on timestamp and random number
+            import time
+            import random
+            timestamp = str(int(time.time()))[-6:]  # Last 6 digits of timestamp
+            random_part = str(random.randint(100, 999))
+            self.codigo = f"V{timestamp}{random_part}"
+            
+            # Ensure uniqueness
+            while Venta.objects.filter(codigo=self.codigo).exists():
+                random_part = str(random.randint(100, 999))
+                self.codigo = f"V{timestamp}{random_part}"
+        
+        super().save(*args, **kwargs)
 
 class VentaDetalle(BaseModel):
     """Sale detail model."""
