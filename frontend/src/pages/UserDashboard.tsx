@@ -67,7 +67,7 @@ const UserDashboard = () => {
       // Fetch carrito with proper error handling
       let carritoData: Carrito | null = null;
       try {
-        const carritoRes = await axios.get('/api/v1/carritos/activo');
+        const carritoRes = await axios.get('/api/v1/carritos/mi_carrito/');
         carritoData = carritoRes.data;
         console.log('Carrito response:', carritoRes.data);
       } catch (carritoError: any) {

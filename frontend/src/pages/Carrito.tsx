@@ -38,7 +38,7 @@ const Carrito = () => {
 
   const fetchCarrito = async () => {
     try {
-      const response = await axios.get('/api/v1/carritos/activo');
+      const response = await axios.get('/api/v1/carritos/mi_carrito/');
       setCarrito(response.data);
     } catch (err: any) {
       if (err.response?.status === 404) {
@@ -56,7 +56,7 @@ const Carrito = () => {
     
     setUpdatingItem(itemId);
     try {
-      await axios.put(`/api/v1/carritos/items/${itemId}`, {
+      await axios.put(`/api/v1/carrito-items/${itemId}/`, {
         cantidad: newQuantity,
       });
       showInfo(`Cantidad actualizada a ${newQuantity}`);
@@ -71,7 +71,7 @@ const Carrito = () => {
   const handleRemoveItem = async (itemId: number) => {
     setUpdatingItem(itemId);
     try {
-      await axios.delete(`/api/v1/carritos/items/${itemId}`);
+      await axios.delete(`/api/v1/carrito-items/${itemId}/`);
       showSuccess('Paquete eliminado del carrito');
       fetchCarrito();
     } catch (err: any) {
@@ -84,7 +84,9 @@ const Carrito = () => {
   const handleCheckout = async () => {
     setProcessingCheckout(true);
     try {
-      await axios.post('/api/v1/carritos/checkout');
+      await axios.post('/api/v1/ventas/confirmar_pago/', {
+        metodo_pago: 'efectivo' // Default payment method
+      });
       showSuccess('¡Compra registrada exitosamente! 🎉 Tu pedido está pendiente de entrega.');
       navigate('/ventas');
     } catch (err: any) {

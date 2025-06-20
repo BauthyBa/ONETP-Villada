@@ -54,7 +54,7 @@ const Paquetes = () => {
   const handleAddToCart = async (paqueteId: number) => {
     setLoadingAdd(paqueteId);
     try {
-      await axios.post('/api/v1/carritos/items', {
+      await axios.post('/api/v1/carritos/agregar_item/', {
         paquete_id: paqueteId,
         cantidad: 1,
       });
