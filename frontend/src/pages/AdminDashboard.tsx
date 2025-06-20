@@ -121,7 +121,13 @@ const AdminDashboard = () => {
       console.log('Admin - Usuarios response:', usuariosRes.data);
 
       // Map backend keys to frontend expected ones
-      const usuariosData: Usuario[] = usuariosRes.data.map((u: any) => ({
+      const usuariosRaw = Array.isArray(usuariosRes.data) ? usuariosRes.data : 
+                          (usuariosRes.data?.results || usuariosRes.data?.data || []);
+
+      const ventasRaw = Array.isArray(ventasRes.data) ? ventasRes.data :
+                        (ventasRes.data?.results || ventasRes.data?.data || []);
+
+      const usuariosData: Usuario[] = usuariosRaw.map((u: any) => ({
         id: u.id,
         email: u.email,
         name: u.nombre || u.name || '',
@@ -144,17 +150,17 @@ const AdminDashboard = () => {
       }));
 
       setPaquetes(paquetesData);
-      setVentas(ventasRes.data);
+      setVentas(ventasRaw);
       setUsuarios(usuariosData);
 
       // Calculate stats using the processed data
-      const ingresos = ventasRes.data
+      const ingresos = ventasRaw
         .filter((v: Venta) => v.estado === 'confirmada')
         .reduce((sum: number, v: Venta) => sum + v.total, 0);
 
       setStats({
         total_paquetes: paquetesData.length,
-        total_ventas: ventasRes.data.length,
+        total_ventas: ventasRaw.length,
         total_usuarios: usuariosData.length,
         ingresos_totales: ingresos
       });
