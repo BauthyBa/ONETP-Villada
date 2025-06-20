@@ -6,7 +6,7 @@ import axios from 'axios';
 interface Venta {
   id: number;
   fecha_venta: string;
-  total: number;
+  total: number | string;
   estado: string;
   metodo_pago: string;
   items: Array<{
@@ -17,7 +17,7 @@ interface Venta {
     };
     cantidad: number;
     precio_unitario: number;
-    subtotal: number;
+    subtotal: number | string;
   }>;
 }
 
@@ -31,9 +31,9 @@ interface Carrito {
       precio: number;
     };
     cantidad: number;
-    subtotal: number;
+    subtotal: number | string;
   }>;
-  total: number;
+  total: number | string;
 }
 
 const UserDashboard = () => {
@@ -106,7 +106,7 @@ const UserDashboard = () => {
   
   const totalGastado = ventasArray
     .filter(v => v.estado === 'confirmada')
-    .reduce((sum, v) => sum + v.total, 0);
+    .reduce((sum, v) => sum + parseFloat(v.total.toString()), 0);
 
   const viajesRealizados = ventasArray.filter(v => v.estado === 'confirmada').length;
 
@@ -264,7 +264,7 @@ const UserDashboard = () => {
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-green-600">
-                          ${venta.total.toLocaleString()}
+                          ${parseFloat(venta.total.toString()).toLocaleString()}
                         </div>
                         <span className={`px-2 py-1 rounded-full text-xs ${getEstadoColor(venta.estado)}`}>
                           {venta.estado}
@@ -320,7 +320,7 @@ const UserDashboard = () => {
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-blue-600">
-                          ${item.subtotal.toLocaleString()}
+                          ${parseFloat(item.subtotal.toString()).toLocaleString()}
                         </div>
                         <div className="text-sm text-gray-500">
                           Cantidad: {item.cantidad}
@@ -333,7 +333,7 @@ const UserDashboard = () => {
                   <div className="flex justify-between items-center">
                     <div className="font-semibold">Total:</div>
                     <div className="font-bold text-lg text-blue-600">
-                      ${carrito.total.toLocaleString()}
+                      ${parseFloat(carrito.total.toString()).toLocaleString()}
                     </div>
                   </div>
                   <Link

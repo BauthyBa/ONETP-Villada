@@ -13,14 +13,14 @@ interface DetalleVenta {
     duracion_dias: number;
   };
   cantidad: number;
-  precio_unitario: number;
-  subtotal: number;
+  precio_unitario: number | string;
+  subtotal: number | string;  // Puede ser string del backend
 }
 
 interface Venta {
   id: number;
   fecha_venta: string;
-  total: number;
+  total: number | string;  // Puede ser string del backend
   estado: string;
   metodo_pago: string;
   items: DetalleVenta[];
@@ -212,7 +212,7 @@ const Ventas = () => {
                         {venta.estado.charAt(0).toUpperCase() + venta.estado.slice(1)}
                       </span>
                       <span className="text-xl font-bold text-gray-900">
-                        ${venta.total.toLocaleString()}
+                        ${parseFloat(venta.total.toString()).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -234,7 +234,7 @@ const Ventas = () => {
                               {detalle.paquete.destino} • {detalle.paquete.duracion_dias} días
                             </p>
                             <p className="text-sm text-blue-600">
-                              ${detalle.precio_unitario.toLocaleString()} por persona
+                              ${parseFloat(detalle.precio_unitario.toString()).toLocaleString()} por persona
                             </p>
                           </div>
                         </div>
@@ -286,7 +286,7 @@ const Ventas = () => {
                           {/* Subtotal */}
                           <div className="text-right min-w-[80px]">
                             <div className="font-semibold text-gray-900">
-                              ${detalle.subtotal.toLocaleString()}
+                              ${parseFloat(detalle.subtotal.toString()).toLocaleString()}
                             </div>
                             {canModify(venta.estado) && (
                               <button

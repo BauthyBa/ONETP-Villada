@@ -33,7 +33,7 @@ interface Venta {
     email: string;
   };
   fecha_venta: string;
-  total: number;
+  total: number | string;
   estado: string;
   metodo_pago: string;
   items: Array<{
@@ -157,7 +157,7 @@ const AdminDashboard = () => {
       // Calculate stats using the processed data
       const ingresos = ventasRaw
         .filter((v: Venta) => v.estado === 'confirmada')
-        .reduce((sum: number, v: Venta) => sum + v.total, 0);
+        .reduce((sum: number, v: Venta) => sum + parseFloat(v.total.toString()), 0);
 
       setStats({
         total_paquetes: paquetesData.length,
@@ -404,7 +404,7 @@ const AdminDashboard = () => {
                   <div className="text-4xl mr-4">💵</div>
                   <div>
                     <div className="text-3xl font-bold text-yellow-600">
-                      ${stats.ingresos_totales.toLocaleString()}
+                      ${(stats.ingresos_totales || 0).toLocaleString()}
                     </div>
                     <div className="text-gray-600">Ingresos Totales</div>
                   </div>
@@ -425,7 +425,7 @@ const AdminDashboard = () => {
                         <div className="text-sm text-gray-600">{venta.usuario.name} {venta.usuario.surname}</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-green-600">${venta.total.toLocaleString()}</div>
+                        <div className="font-bold text-green-600">${parseFloat(venta.total.toString()).toLocaleString()}</div>
                         <span className={`px-2 py-1 rounded-full text-xs ${getEstadoColor(venta.estado)}`}>
                           {venta.estado}
                         </span>
@@ -745,7 +745,7 @@ const AdminDashboard = () => {
                           {new Date(venta.fecha_venta).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          ${venta.total.toLocaleString()}
+                          ${parseFloat(venta.total.toString()).toLocaleString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getEstadoColor(venta.estado)}`}>
