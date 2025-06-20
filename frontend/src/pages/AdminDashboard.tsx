@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 
+interface Categoria {
+  id: string;
+  nombre: string;
+}
+
 interface Paquete {
   id: number;
   nombre: string;
@@ -15,6 +20,7 @@ interface Paquete {
   destino: string;
   imagen_url: string;
   activo: boolean;
+  categoria?: Categoria;
 }
 
 interface Venta {
@@ -65,6 +71,7 @@ const AdminDashboard = () => {
   const [paquetes, setPaquetes] = useState<Paquete[]>([]);
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [stats, setStats] = useState<Stats>({
     total_paquetes: 0,
     total_ventas: 0,
@@ -86,7 +93,8 @@ const AdminDashboard = () => {
     fecha_inicio: '',
     fecha_fin: '',
     destino: '',
-    imagen_url: ''
+    imagen_url: '',
+    categoria_id: ''
   });
 
   useEffect(() => {
@@ -96,10 +104,11 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [paquetesRes, ventasRes, usuariosRes] = await Promise.all([
+      const [paquetesRes, ventasRes, usuariosRes, categoriasRes] = await Promise.all([
         axios.get('/api/v1/paquetes/'),
         axios.get('/api/v1/ventas/'),
-        axios.get('/api/v1/usuarios/')
+        axios.get('/api/v1/usuarios/'),
+        axios.get('/api/v1/paquetes/categorias/')
       ]);
 
       // Handle different response formats - extract results if needed
@@ -107,12 +116,29 @@ const AdminDashboard = () => {
                           (paquetesRes.data?.results || paquetesRes.data?.data || []);
       const ventasData = Array.isArray(ventasRes.data) ? ventasRes.data : 
                         (ventasRes.data?.results || ventasRes.data?.data || []);
-      const usuariosData = Array.isArray(usuariosRes.data) ? usuariosRes.data : 
+      const usuariosRaw = Array.isArray(usuariosRes.data) ? usuariosRes.data : 
                           (usuariosRes.data?.results || usuariosRes.data?.data || []);
 
       console.log('Admin - Paquetes response:', paquetesRes.data);
       console.log('Admin - Ventas response:', ventasRes.data);
       console.log('Admin - Usuarios response:', usuariosRes.data);
+
+      // Map backend keys to frontend expected ones
+      const usuariosData: Usuario[] = usuariosRaw.map((u: any) => ({
+        id: u.id,
+        email: u.email,
+        name: u.nombre || u.name || '',
+        surname: u.apellido || u.surname || '',
+        phone: u.telefono || u.phone || '',
+        address: u.direccion || u.address || '',
+        role: u.tipo_usuario || u.role || 'cliente',
+        is_active: u.is_active,
+        created_at: u.created_at,
+      }));
+
+      // Categories
+      const categoriasData: Categoria[] = Array.isArray(categoriasRes.data) ? categoriasRes.data : categoriasRes.data?.results || [];
+      setCategorias(categoriasData);
 
       setPaquetes(paquetesData);
       setVentas(ventasData);
@@ -146,7 +172,8 @@ const AdminDashboard = () => {
         duracion_dias: parseInt(packageForm.duracion_dias),
         cupo_maximo: parseInt(packageForm.cupo_maximo),
         fecha_inicio: packageForm.fecha_inicio,
-        fecha_fin: packageForm.fecha_fin
+        fecha_fin: packageForm.fecha_fin,
+        categoria_id: packageForm.categoria_id || undefined,
       };
 
       if (editingPackage) {
@@ -166,7 +193,8 @@ const AdminDashboard = () => {
         fecha_inicio: '',
         fecha_fin: '',
         destino: '',
-        imagen_url: ''
+        imagen_url: '',
+        categoria_id: ''
       });
       fetchData();
     } catch (err: any) {
@@ -185,7 +213,8 @@ const AdminDashboard = () => {
       fecha_inicio: paquete.fecha_inicio.split('T')[0],
       fecha_fin: paquete.fecha_fin.split('T')[0],
       destino: paquete.destino,
-      imagen_url: paquete.imagen_url
+      imagen_url: paquete.imagen_url,
+      categoria_id: paquete.categoria?.id || ''
     });
     setShowPackageForm(true);
   };
@@ -274,7 +303,7 @@ const AdminDashboard = () => {
       {/* Navigation Tabs */}
       <div className="bg-white shadow-sm">
         <div className="container mx-auto px-4">
-          <div className="flex space-x-8">
+          <div className="flex space-x-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
             {[
               { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
               { id: 'paquetes', label: '🏞️ Paquetes', icon: '🏞️' },
@@ -491,6 +520,20 @@ const AdminDashboard = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                        <select
+                          value={packageForm.categoria_id}
+                          onChange={(e) => setPackageForm({ ...packageForm, categoria_id: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        >
+                          <option value="">Seleccionar</option>
+                          {categorias.map((cat) => (
+                            <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                     <div>
