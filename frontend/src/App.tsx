@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthProvider from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -52,9 +53,14 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
+      <AuthProvider>
+        <NotificationProvider>
           <div className="min-h-screen bg-gray-100">
             <Navbar />
             <main className="container mx-auto px-4 py-8">
@@ -113,9 +119,9 @@ function App() {
               </Routes>
             </main>
           </div>
-        </Router>
-      </NotificationProvider>
-    </AuthProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

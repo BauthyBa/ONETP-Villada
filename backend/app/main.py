@@ -31,5 +31,5 @@ def health_check():
     }
 
 # Mount static files - This must be after all API routes
-app.mount("/", StaticFiles(directory="frontend/build", html=True), name="static")
+app.mount("/", StaticFiles(directory="../frontend/build", html=True), name="static")
  
