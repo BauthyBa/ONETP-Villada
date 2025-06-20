@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # This file helps Railway detect this as a Python project
 # The actual Django application is served via gunicorn in Procfile
 

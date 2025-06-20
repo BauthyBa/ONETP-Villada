@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["python3", "python3Packages.pip", "python3Packages.setuptools"]
+
+[phases.install]
+cmds = ["pip3 install -r requirements.txt"]
+
+[phases.build]
+cmds = ["python3 manage.py collectstatic --noinput"]
+
+[start]
+cmd = "python3 manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT" 
