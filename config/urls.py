@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 
@@ -20,6 +20,36 @@ User = get_user_model()
 def healthcheck(request):
     """Simple healthcheck endpoint for Railway deployment."""
     return JsonResponse({"status": "ok", "message": "ONIET API is running"})
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def test_auth(request):
+    """Endpoint para probar autenticación"""
+    return Response({
+        'message': 'API funcionando correctamente',
+        'auth_endpoints': {
+            'login': '/api/v1/auth/token/',
+            'register': '/api/v1/auth/register/',
+            'me': '/api/v1/auth/me/',
+            'admin_credentials': {
+                'email': 'admin@tourpackages.com',
+                'password': 'admin1234'
+            }
+        }
+    }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def test_protected(request):
+    """Endpoint protegido para probar autenticación"""
+    return Response({
+        'message': 'Autenticación exitosa!',
+        'user': {
+            'email': request.user.email,
+            'nombre': request.user.nombre,
+            'tipo_usuario': request.user.tipo_usuario
+        }
+    }, status=status.HTTP_200_OK)
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
@@ -39,7 +69,7 @@ def verify_admin(request):
                 'tipo_usuario': admin_user.tipo_usuario,
                 'is_staff': admin_user.is_staff,
                 'is_superuser': admin_user.is_superuser,
-                'admin_url': 'https://oniet-backend.onrender.com/admin/'
+                'admin_url': 'https://onetp-backend.onrender.com/admin/'
             }, status=status.HTTP_200_OK)
         else:
             # Crear el usuario admin si no existe
@@ -60,12 +90,12 @@ def verify_admin(request):
                     'tipo_usuario': admin_user.tipo_usuario,
                     'is_staff': admin_user.is_staff,
                     'is_superuser': admin_user.is_superuser,
-                    'admin_url': 'https://oniet-backend.onrender.com/admin/'
+                    'admin_url': 'https://onetp-backend.onrender.com/admin/'
                 }, status=status.HTTP_201_CREATED)
             else:
                 return Response({
                     'message': 'Usuario admin no existe. Usa POST para crearlo.',
-                    'admin_url': 'https://oniet-backend.onrender.com/admin/'
+                    'admin_url': 'https://onetp-backend.onrender.com/admin/'
                 }, status=status.HTTP_404_NOT_FOUND)
         
     except Exception as e:
@@ -112,6 +142,10 @@ def create_admin_simple(request):
 urlpatterns = [
     # Healthcheck endpoint
     path('', healthcheck, name='healthcheck'),
+    
+    # Test endpoints
+    path('test-auth/', test_auth, name='test_auth'),
+    path('test-protected/', test_protected, name='test_protected'),
     
     # Admin verification and creation endpoint
     path('verify-admin/', verify_admin, name='verify_admin'),
