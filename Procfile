@@ -1,1 +1,1 @@
-web: python3 manage.py migrate && sleep 5 && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --preload
+web: chmod +x start.sh && ./start.sh
