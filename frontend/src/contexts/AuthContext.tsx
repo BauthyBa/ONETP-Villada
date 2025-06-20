@@ -29,6 +29,27 @@ axiosInstance.interceptors.response.use(
         // Manejar cierre de sesión si el token es inválido
         localStorage.removeItem('access_token');
         delete axiosInstance.defaults.headers.common['Authorization'];
+        delete axios.defaults.headers.common['Authorization'];
+        window.location.href = '/login';
+      }
+      // Para otros endpoints, simplemente rechazar el error sin redirigir
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor para axios por defecto también
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Solo limpiar y redirigir si es un error de autenticación en endpoints críticos
+      const url = error.config?.url || '';
+      if (url.includes('/auth/me/') || url.includes('/auth/token/')) {
+        // Manejar cierre de sesión si el token es inválido
+        localStorage.removeItem('access_token');
+        delete axiosInstance.defaults.headers.common['Authorization'];
+        delete axios.defaults.headers.common['Authorization'];
         window.location.href = '/login';
       }
       // Para otros endpoints, simplemente rechazar el error sin redirigir
@@ -93,8 +114,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         return;
       }
 
-      // Set authorization header for all requests
+      // Set authorization header for all requests (both axiosInstance and axios.defaults)
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       try {
         // Verify token and get user data
@@ -113,6 +135,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         // If there's an error, clear the invalid token
         localStorage.removeItem('access_token');
         delete axiosInstance.defaults.headers.common['Authorization'];
+        delete axios.defaults.headers.common['Authorization'];
       } finally {
         setLoading(false);
       }
@@ -139,9 +162,10 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         throw new Error('No se recibió el token de acceso');
       }
       
-      // Store token
+      // Store token and set headers for both axios instances
       localStorage.setItem('access_token', access);
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
       // Get user data
       const userResponse = await axiosInstance.get('/api/v1/auth/me/', {
@@ -202,6 +226,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       // Limpiar el estado local
       localStorage.removeItem('access_token');
       delete axiosInstance.defaults.headers.common['Authorization'];
+      delete axios.defaults.headers.common['Authorization'];
       setUser(null);
     } catch (error) {
       console.error('Error during logout:', error);
