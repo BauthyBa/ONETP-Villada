@@ -102,19 +102,31 @@ const AdminDashboard = () => {
         axios.get('/api/v1/usuarios/')
       ]);
 
-      setPaquetes(paquetesRes.data);
-      setVentas(ventasRes.data);
-      setUsuarios(usuariosRes.data);
+      // Handle different response formats - extract results if needed
+      const paquetesData = Array.isArray(paquetesRes.data) ? paquetesRes.data : 
+                          (paquetesRes.data?.results || paquetesRes.data?.data || []);
+      const ventasData = Array.isArray(ventasRes.data) ? ventasRes.data : 
+                        (ventasRes.data?.results || ventasRes.data?.data || []);
+      const usuariosData = Array.isArray(usuariosRes.data) ? usuariosRes.data : 
+                          (usuariosRes.data?.results || usuariosRes.data?.data || []);
 
-      // Calculate stats
-      const ingresos = ventasRes.data
+      console.log('Admin - Paquetes response:', paquetesRes.data);
+      console.log('Admin - Ventas response:', ventasRes.data);
+      console.log('Admin - Usuarios response:', usuariosRes.data);
+
+      setPaquetes(paquetesData);
+      setVentas(ventasData);
+      setUsuarios(usuariosData);
+
+      // Calculate stats using the processed data
+      const ingresos = ventasData
         .filter((v: Venta) => v.estado === 'confirmada')
         .reduce((sum: number, v: Venta) => sum + v.total, 0);
 
       setStats({
-        total_paquetes: paquetesRes.data.length,
-        total_ventas: ventasRes.data.length,
-        total_usuarios: usuariosRes.data.length,
+        total_paquetes: paquetesData.length,
+        total_ventas: ventasData.length,
+        total_usuarios: usuariosData.length,
         ingresos_totales: ingresos
       });
     } catch (err: any) {

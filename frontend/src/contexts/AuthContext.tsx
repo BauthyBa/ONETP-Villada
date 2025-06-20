@@ -215,16 +215,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const logout = async () => {
     try {
-      // Intentar hacer logout en el backend
-      try {
-        await axiosInstance.post('/api/v1/auth/logout/');
-      } catch (error) {
-        console.error('Error en el logout del backend:', error);
-        // Continuar a limpiar el estado aunque falle el logout en el backend
-      }
-      
-      // Limpiar el estado local
+      // Limpiar el estado local sin intentar logout en el backend
       localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       delete axiosInstance.defaults.headers.common['Authorization'];
       delete axios.defaults.headers.common['Authorization'];
       setUser(null);
