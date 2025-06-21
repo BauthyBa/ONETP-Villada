@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import AuthProvider from './contexts/AuthContext';
-import { useAuth } from './contexts/AuthContext';
+import AuthProvider, { useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -12,6 +11,7 @@ import Ventas from './pages/Ventas';
 import Perfil from './pages/Perfil';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
+import { useLocation } from 'react-router-dom';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -51,6 +51,73 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+const AppLayout = () => {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+  const mainClass = isHome ? '' : 'container mx-auto px-4 py-8';
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <main className={mainClass}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <UserDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/paquetes"
+            element={
+              <PrivateRoute>
+                <Paquetes />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/carrito"
+            element={
+              <PrivateRoute>
+                <Carrito />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/ventas"
+            element={
+              <PrivateRoute>
+                <Ventas />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/perfil"
+            element={
+              <PrivateRoute>
+                <Perfil />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </main>
+    </div>
+  );
+};
+
 function App() {
   return (
     <Router
@@ -61,64 +128,7 @@ function App() {
     >
       <AuthProvider>
         <NotificationProvider>
-          <div className="min-h-screen bg-gray-100">
-            <Navbar />
-            <main className="container mx-auto px-4 py-8">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <PrivateRoute>
-                      <UserDashboard />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <AdminRoute>
-                      <AdminDashboard />
-                    </AdminRoute>
-                  }
-                />
-                <Route
-                  path="/paquetes"
-                  element={
-                    <PrivateRoute>
-                      <Paquetes />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/carrito"
-                  element={
-                    <PrivateRoute>
-                      <Carrito />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/ventas"
-                  element={
-                    <PrivateRoute>
-                      <Ventas />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/perfil"
-                  element={
-                    <PrivateRoute>
-                      <Perfil />
-                    </PrivateRoute>
-                  }
-                />
-              </Routes>
-            </main>
-          </div>
+          <AppLayout />
         </NotificationProvider>
       </AuthProvider>
     </Router>

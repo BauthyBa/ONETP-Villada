@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useNotification } from '../contexts/NotificationContext';
+import Footer from '../components/Footer';
 
 interface ItemCarrito {
   id: number;
@@ -112,10 +113,11 @@ const Carrito = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">⏳</div>
-          <div className="text-lg text-gray-600">Cargando carrito...</div>
+          <div className="text-6xl mb-4 animate-bounce">⏳</div>
+          <div className="text-xl text-gray-600">Cargando tu carrito...</div>
+          <div className="text-sm text-gray-500 mt-2">Preparando tus aventuras seleccionadas</div>
         </div>
       </div>
     );
@@ -123,10 +125,16 @@ const Carrito = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">❌</div>
-          <div className="text-lg text-red-600">{error}</div>
+          <div className="text-6xl mb-4">❌</div>
+          <div className="text-xl text-red-600 mb-4">{error}</div>
+          <button
+            onClick={fetchCarrito}
+            className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-700 transform hover:scale-105 transition-all duration-300"
+          >
+            🔄 Reintentar
+          </button>
         </div>
       </div>
     );
@@ -134,19 +142,24 @@ const Carrito = () => {
 
   if (!carrito || carrito.items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <div className="text-6xl mb-6">🛒</div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Tu carrito está vacío</h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Explora nuestros paquetes turísticos y agrega los que más te gusten
+          <div className="text-center max-w-2xl mx-auto">
+            <div className="text-8xl mb-8 opacity-60">🛒</div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
+              Tu carrito está vacío
+            </h2>
+            <p className="text-xl text-gray-600 mb-12 leading-relaxed">
+              ¡Es hora de llenar tu carrito con experiencias increíbles! 
+              Explora nuestros paquetes turísticos y descubre tu próxima aventura.
             </p>
             <button
               onClick={() => navigate('/paquetes')}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-12 py-4 rounded-2xl font-bold text-lg hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-blue-500/25 flex items-center justify-center space-x-3 mx-auto"
             >
-              Ver Paquetes
+              <span>🏞️</span>
+              <span>Descubrir Paquetes</span>
+              <span>✨</span>
             </button>
           </div>
         </div>
@@ -155,80 +168,112 @@ const Carrito = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">🛒 Mi Carrito de Compras</h1>
-          <p className="text-gray-600 mt-2">Revisa y confirma tu selección de paquetes</p>
+      <div className="bg-gradient-to-r from-green-600 via-blue-600 to-purple-700 text-white relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-20 w-40 h-40 bg-white rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-pulse"></div>
+          <div className="absolute bottom-10 right-20 w-60 h-60 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-pulse"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 py-12 relative">
+          <div className="text-center">
+            <div className="mb-4">
+              <div className="text-5xl md:text-6xl mb-4 animate-bounce">🛒</div>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-200 to-blue-200 bg-clip-text text-transparent">
+              Mi Carrito de Compras
+            </h1>
+            <p className="text-lg md:text-xl text-green-100 max-w-2xl mx-auto">
+              Revisa y confirma tu selección de paquetes para vivir experiencias únicas
+            </p>
+            <div className="w-24 h-1 bg-gradient-to-r from-green-300 to-blue-300 mx-auto mt-4 rounded-full"></div>
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b">
-                <h2 className="text-xl font-semibold text-gray-800">
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-blue-600 p-6 text-white">
+                <h2 className="text-2xl font-bold flex items-center">
+                  <span className="text-3xl mr-3">🎒</span>
                   Paquetes Seleccionados ({carrito.items.length})
                 </h2>
+                <p className="text-green-100 mt-1">Tus próximas aventuras te esperan</p>
               </div>
 
-              <div className="divide-y">
-                {carrito.items.map((item) => (
-                  <div key={item.id} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-xl">
+              <div className="divide-y divide-gray-100">
+                {carrito.items.map((item, index) => (
+                  <div key={item.id} className={`p-8 hover:bg-gradient-to-r hover:from-blue-50 hover:to-green-50 transition-all duration-300 ${
+                    index % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'
+                  }`}>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
+                      <div className="flex items-start space-x-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg">
                           {getDestinoIcon(item.paquete.destino)}
                         </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{item.paquete.nombre}</h3>
-                          <p className="text-sm text-gray-600">
-                            {item.paquete.destino} • {item.paquete.duracion_dias} días
-                          </p>
-                          <p className="text-sm font-medium text-blue-600">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">{item.paquete.nombre}</h3>
+                          <div className="flex flex-wrap gap-3 mb-3">
+                            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                              📍 {item.paquete.destino}
+                            </span>
+                            <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                              📅 {item.paquete.duracion_dias} días
+                            </span>
+                          </div>
+                          <p className="text-lg font-bold text-green-600">
                             ${item.paquete.precio.toLocaleString()} por persona
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-4">
+                      <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
                         {/* Quantity Controls */}
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center bg-gray-100 rounded-xl p-2">
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.cantidad - 1)}
                             disabled={item.cantidad <= 1 || updatingItem === item.id}
-                            className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                            className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
                           >
                             −
                           </button>
-                          <span className="w-8 text-center font-medium">
-                            {updatingItem === item.id ? '⏳' : item.cantidad}
+                          <span className="mx-4 text-lg font-bold text-gray-800 min-w-[2rem] text-center">
+                            {item.cantidad}
                           </span>
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.cantidad + 1)}
                             disabled={updatingItem === item.id}
-                            className="w-8 h-8 rounded border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                            className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-gray-600 hover:text-green-600 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
                           >
                             +
                           </button>
                         </div>
 
                         {/* Subtotal */}
-                        <div className="text-right min-w-[100px]">
-                          <div className="font-semibold text-gray-900">
+                        <div className="text-center">
+                          <div className="text-sm text-gray-500 mb-1">Subtotal</div>
+                          <div className="text-2xl font-bold text-blue-600">
                             ${item.subtotal.toLocaleString()}
                           </div>
-                          <button
-                            onClick={() => handleRemoveItem(item.id)}
-                            disabled={updatingItem === item.id}
-                            className="text-red-600 text-sm hover:text-red-800 disabled:opacity-50"
-                          >
-                            Eliminar
-                          </button>
                         </div>
+
+                        {/* Remove Button */}
+                        <button
+                          onClick={() => handleRemoveItem(item.id)}
+                          disabled={updatingItem === item.id}
+                          className="bg-red-500 text-white p-3 rounded-xl hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-red-500/25"
+                        >
+                          {updatingItem === item.id ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          ) : (
+                            <span className="text-lg">🗑️</span>
+                          )}
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -239,58 +284,123 @@ const Carrito = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Resumen del Pedido
-              </h2>
+            <div className="bg-white rounded-3xl shadow-xl border border-gray-100 sticky top-6 overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-6 text-white">
+                <h2 className="text-2xl font-bold flex items-center">
+                  <span className="text-3xl mr-3">💳</span>
+                  Resumen del Pedido
+                </h2>
+                <p className="text-purple-100 mt-1">Tu inversión en aventuras</p>
+              </div>
 
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal ({carrito.items.length} paquetes)</span>
-                  <span>${carrito.total.toLocaleString()}</span>
-                </div>
-                <div className="border-t pt-3">
-                  <div className="flex justify-between text-lg font-semibold text-gray-900">
-                    <span>Total</span>
-                    <span>${carrito.total.toLocaleString()}</span>
+              <div className="p-8">
+                <div className="space-y-4 mb-8">
+                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                    <span className="text-gray-600 flex items-center">
+                      <span className="mr-2">📦</span>
+                      Subtotal ({carrito.items.length} paquete{carrito.items.length !== 1 ? 's' : ''})
+                    </span>
+                    <span className="font-semibold text-lg">${carrito.total.toLocaleString()}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-xl">
+                    <span className="text-green-700 flex items-center">
+                      <span className="mr-2">🎁</span>
+                      Descuentos
+                    </span>
+                    <span className="font-semibold text-green-600">$0</span>
+                  </div>
+                  
+                  <div className="border-t-2 border-gray-200 pt-4">
+                    <div className="flex justify-between items-center p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200">
+                      <span className="text-xl font-bold text-gray-800 flex items-center">
+                        <span className="mr-2">💰</span>
+                        Total Final
+                      </span>
+                      <span className="text-3xl font-bold text-blue-600">
+                        ${carrito.total.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <button
-                onClick={handleCheckout}
-                disabled={processingCheckout}
-                className={`w-full py-3 rounded-lg font-medium ${
-                  processingCheckout
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
-              >
-                {processingCheckout ? (
-                  <>⏳ Procesando...</>
-                ) : (
-                  <>✅ Confirmar Compra</>
-                )}
-              </button>
-
-              <div className="mt-4 text-center">
                 <button
-                  onClick={() => navigate('/paquetes')}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  onClick={handleCheckout}
+                  disabled={processingCheckout}
+                  className={`w-full py-5 rounded-2xl font-bold text-lg transition-all duration-300 transform ${
+                    processingCheckout
+                      ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                      : 'bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 hover:scale-105 shadow-xl hover:shadow-green-500/25'
+                  } text-white flex items-center justify-center space-x-3`}
                 >
-                  ← Seguir agregando paquetes
+                  {processingCheckout ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                      <span>Procesando compra...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>✅</span>
+                      <span>Confirmar Compra</span>
+                      <span>🚀</span>
+                    </>
+                  )}
                 </button>
-              </div>
 
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <div className="text-blue-700 text-sm">
-                  <span className="font-medium">📋 Nota:</span> Tu compra será registrada como pendiente de entrega.
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={() => navigate('/paquetes')}
+                    className="text-blue-600 hover:text-blue-800 font-semibold transition-colors flex items-center justify-center space-x-2 mx-auto group"
+                  >
+                    <span className="group-hover:-translate-x-1 transition-transform">←</span>
+                    <span>Seguir agregando paquetes</span>
+                  </button>
+                </div>
+
+                <div className="mt-8 space-y-4">
+                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <div className="text-blue-700 text-sm">
+                      <div className="flex items-start space-x-2">
+                        <span className="text-lg">📋</span>
+                        <div>
+                          <div className="font-semibold mb-1">Proceso de compra:</div>
+                          <div>Tu compra será registrada como pendiente de entrega. Recibirás una confirmación inmediatamente.</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                    <div className="text-green-700 text-sm">
+                      <div className="flex items-start space-x-2">
+                        <span className="text-lg">🛡️</span>
+                        <div>
+                          <div className="font-semibold mb-1">Garantía total:</div>
+                          <div>Todos nuestros paquetes incluyen seguro de viaje y asistencia 24/7.</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                    <div className="text-purple-700 text-sm">
+                      <div className="flex items-start space-x-2">
+                        <span className="text-lg">⭐</span>
+                        <div>
+                          <div className="font-semibold mb-1">Experiencia premium:</div>
+                          <div>Disfruta de alojamientos de calidad y actividades exclusivas en cada destino.</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };

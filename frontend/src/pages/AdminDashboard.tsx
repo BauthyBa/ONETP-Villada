@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import Footer from '../components/Footer';
 
 interface Categoria {
   id: string;
@@ -81,6 +82,7 @@ const AdminDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Form states for creating/editing packages
   const [showPackageForm, setShowPackageForm] = useState(false);
@@ -303,10 +305,11 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">⏳</div>
+          <div className="text-6xl mb-4 animate-bounce">⏳</div>
           <div className="text-xl text-gray-600">Cargando panel de administración...</div>
+          <div className="text-sm text-gray-500 mt-2">Preparando herramientas de gestión</div>
         </div>
       </div>
     );
@@ -314,100 +317,155 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">😔</div>
-          <div className="text-xl text-red-600">{error}</div>
+          <div className="text-xl text-red-600 mb-4">{error}</div>
+          <button
+            onClick={fetchData}
+            className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-700 transform hover:scale-105 transition-all duration-300"
+          >
+            🔄 Reintentar
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-3xl">
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-700 text-white relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-20 w-40 h-40 bg-white rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-pulse"></div>
+          <div className="absolute bottom-10 right-20 w-60 h-60 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-10 animate-pulse"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 py-12 relative">
+          <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-sm flex items-center justify-center text-4xl border border-white/20 shadow-2xl">
               👨‍💼
             </div>
-            <div>
-              <h1 className="text-4xl font-bold">Panel de Administración</h1>
-              <p className="text-xl opacity-90">Bienvenido, {user?.name}</p>
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                Panel de Administración
+              </h1>
+              <p className="text-xl text-purple-100">
+                Bienvenido, <span className="font-semibold text-yellow-200">{user?.name}</span> 👋
+              </p>
+              <div className="w-24 h-1 bg-gradient-to-r from-purple-300 to-pink-300 mt-4 rounded-full mx-auto md:mx-0"></div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white shadow-xl border-b border-gray-100 sticky top-0 z-40">
         <div className="container mx-auto px-4">
-          <div className="flex space-x-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
-            {[
-              { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
-              { id: 'paquetes', label: '🏞️ Paquetes', icon: '🏞️' },
-              { id: 'ventas', label: '💰 Ventas', icon: '💰' },
-              { id: 'usuarios', label: '👥 Usuarios', icon: '👥' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-4 px-6 border-b-2 font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex justify-between items-center py-4">
+            <h2 className="text-lg font-bold text-gray-800">Navegación</h2>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              <span className="text-xl">{isMobileMenuOpen ? '✕' : '☰'}</span>
+            </button>
+          </div>
+
+          {/* Navigation Items */}
+          <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block`}>
+            <div className="flex flex-col md:flex-row md:space-x-2 pb-4 md:pb-0">
+              {[
+                { id: 'dashboard', label: 'Dashboard', icon: '📊', color: 'blue' },
+                { id: 'paquetes', label: 'Paquetes', icon: '🏞️', color: 'green' },
+                { id: 'ventas', label: 'Ventas', icon: '💰', color: 'yellow' },
+                { id: 'usuarios', label: 'Usuarios', icon: '👥', color: 'purple' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id as any);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center space-x-3 py-4 px-6 rounded-t-2xl md:rounded-t-none md:rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 mb-2 md:mb-0 ${
+                    activeTab === tab.id
+                      ? `bg-gradient-to-r from-${tab.color}-500 to-${tab.color}-600 text-white shadow-xl`
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="text-xl">{tab.icon}</span>
+                  <span>{tab.label}</span>
+                  {activeTab === tab.id && (
+                    <span className="ml-auto">✨</span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 flex-1">
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white rounded-xl p-6 shadow-lg">
-                <div className="flex items-center">
-                  <div className="text-4xl mr-4">🏞️</div>
+              <div className="group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold text-blue-600">{stats.total_paquetes}</div>
-                    <div className="text-gray-600">Paquetes Activos</div>
+                    <div className="text-4xl font-bold text-blue-600 mb-2 group-hover:scale-110 transition-transform">
+                      {stats.total_paquetes}
+                    </div>
+                    <div className="text-gray-600 font-medium">Paquetes Activos</div>
+                    <div className="text-sm text-blue-500 mt-1">Experiencias disponibles 🏞️</div>
                   </div>
+                  <div className="text-5xl group-hover:scale-110 transition-transform">🏞️</div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl p-6 shadow-lg">
-                <div className="flex items-center">
-                  <div className="text-4xl mr-4">💰</div>
+
+              <div className="group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold text-green-600">{stats.total_ventas}</div>
-                    <div className="text-gray-600">Ventas Totales</div>
+                    <div className="text-4xl font-bold text-green-600 mb-2 group-hover:scale-110 transition-transform">
+                      {stats.total_ventas}
+                    </div>
+                    <div className="text-gray-600 font-medium">Ventas Totales</div>
+                    <div className="text-sm text-green-500 mt-1">Transacciones realizadas 💰</div>
                   </div>
+                  <div className="text-5xl group-hover:scale-110 transition-transform">💰</div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl p-6 shadow-lg">
-                <div className="flex items-center">
-                  <div className="text-4xl mr-4">👥</div>
+
+              <div className="group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold text-purple-600">{stats.total_usuarios}</div>
-                    <div className="text-gray-600">Usuarios Registrados</div>
+                    <div className="text-4xl font-bold text-purple-600 mb-2 group-hover:scale-110 transition-transform">
+                      {stats.total_usuarios}
+                    </div>
+                    <div className="text-gray-600 font-medium">Usuarios Registrados</div>
+                    <div className="text-sm text-purple-500 mt-1">Comunidad activa 👥</div>
                   </div>
+                  <div className="text-5xl group-hover:scale-110 transition-transform">👥</div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl p-6 shadow-lg">
-                <div className="flex items-center">
-                  <div className="text-4xl mr-4">💵</div>
+
+              <div className="group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-500 to-orange-500"></div>
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold text-yellow-600">
+                    <div className="text-4xl font-bold text-yellow-600 mb-2 group-hover:scale-110 transition-transform">
                       ${(stats.ingresos_totales || 0).toLocaleString()}
                     </div>
-                    <div className="text-gray-600">Ingresos Totales</div>
+                    <div className="text-gray-600 font-medium">Ingresos Totales</div>
+                    <div className="text-sm text-yellow-500 mt-1">Revenue generado 💵</div>
                   </div>
+                  <div className="text-5xl group-hover:scale-110 transition-transform">💵</div>
                 </div>
               </div>
             </div>
@@ -415,20 +473,41 @@ const AdminDashboard = () => {
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Recent Sales */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-bold mb-4">💰 Ventas Recientes</h3>
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800 flex items-center mb-2">
+                    <span className="text-3xl mr-3">💰</span>
+                    Ventas Recientes
+                  </h3>
+                  <p className="text-gray-600">Últimas transacciones del sistema</p>
+                </div>
                 <div className="space-y-4">
-                  {ventas.slice(0, 5).map((venta) => (
-                    <div key={venta.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium">Venta #{venta.id}</div>
-                        <div className="text-sm text-gray-600">{venta.usuario.name} {venta.usuario.surname}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-green-600">${parseFloat(venta.total.toString()).toLocaleString()}</div>
-                        <span className={`px-2 py-1 rounded-full text-xs ${getEstadoColor(venta.estado)}`}>
-                          {venta.estado}
-                        </span>
+                  {ventas.slice(0, 5).map((venta, index) => (
+                    <div key={venta.id} className={`group p-4 rounded-2xl transition-all duration-300 hover:shadow-lg ${
+                      index % 2 === 0 ? 'bg-gradient-to-r from-green-50 to-blue-50' : 'bg-gradient-to-r from-blue-50 to-purple-50'
+                    }`}>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-bold text-lg text-gray-900 group-hover:text-green-600 transition-colors">
+                            Venta #{venta.id}
+                          </div>
+                          <div className="text-gray-600 flex items-center mt-1">
+                            <span className="mr-1">👤</span>
+                            {venta.usuario.name} {venta.usuario.surname}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-xl text-green-600 mb-1">
+                            ${parseFloat(venta.total.toString()).toLocaleString()}
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${getEstadoColor(venta.estado)}`}>
+                            {venta.estado === 'pendiente' && '⏳ Pendiente'}
+                            {venta.estado === 'confirmada' && '✅ Confirmada'}
+                            {venta.estado === 'cancelada' && '❌ Cancelada'}
+                            {venta.estado === 'entregada' && '🚚 Entregada'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -436,21 +515,39 @@ const AdminDashboard = () => {
               </div>
 
               {/* Popular Packages */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-bold mb-4">🏞️ Paquetes Populares</h3>
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800 flex items-center mb-2">
+                    <span className="text-3xl mr-3">🏞️</span>
+                    Paquetes Populares
+                  </h3>
+                  <p className="text-gray-600">Los destinos más solicitados</p>
+                </div>
                 <div className="space-y-4">
-                  {paquetes.slice(0, 5).map((paquete) => (
-                    <div key={paquete.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium">{paquete.nombre}</div>
-                        {paquete.destino && (
-                          <div className="text-sm text-gray-600">{paquete.destino}</div>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-blue-600">${paquete.precio.toLocaleString()}</div>
-                        <div className="text-sm text-gray-600">
-                          {paquete.cupo_disponible}/{paquete.cupo_maximo} disponibles
+                  {paquetes.slice(0, 5).map((paquete, index) => (
+                    <div key={paquete.id} className={`group p-4 rounded-2xl transition-all duration-300 hover:shadow-lg ${
+                      index % 2 === 0 ? 'bg-gradient-to-r from-purple-50 to-pink-50' : 'bg-gradient-to-r from-blue-50 to-indigo-50'
+                    }`}>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-bold text-lg text-gray-900 group-hover:text-purple-600 transition-colors">
+                            {paquete.nombre}
+                          </div>
+                          {paquete.destino && (
+                            <div className="text-gray-600 flex items-center mt-1">
+                              <span className="mr-1">📍</span>
+                              {paquete.destino}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-xl text-purple-600 mb-1">
+                            ${paquete.precio.toLocaleString()}
+                          </div>
+                          <div className="text-sm text-gray-600 bg-white/70 px-2 py-1 rounded-full">
+                            {paquete.cupo_disponible}/{paquete.cupo_maximo} disponibles
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -463,147 +560,200 @@ const AdminDashboard = () => {
 
         {/* Packages Tab */}
         {activeTab === 'paquetes' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">🏞️ Gestión de Paquetes</h2>
+          <div className="space-y-8">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-800 flex items-center">
+                  <span className="text-4xl mr-3">🏞️</span>
+                  Gestión de Paquetes
+                </h2>
+                <p className="text-gray-600 mt-1">Administra las experiencias turísticas disponibles</p>
+              </div>
               <button
                 onClick={() => setShowPackageForm(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
+                className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-green-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-green-500/25 flex items-center space-x-3"
               >
-                ➕ Nuevo Paquete
+                <span>➕</span>
+                <span>Nuevo Paquete</span>
+                <span>✨</span>
               </button>
             </div>
 
             {/* Package Form Modal */}
             {showPackageForm && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
-                  <h3 className="text-2xl font-bold mb-6">
-                    {editingPackage ? '✏️ Editar Paquete' : '➕ Nuevo Paquete'}
-                  </h3>
-                  <form onSubmit={handlePackageSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
-                        <input
-                          type="text"
-                          value={packageForm.nombre}
-                          onChange={(e) => setPackageForm({...packageForm, nombre: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-screen overflow-y-auto shadow-2xl">
+                  <div className="text-center mb-8">
+                    <h3 className="text-3xl font-bold text-gray-800 flex items-center justify-center mb-2">
+                      <span className="text-4xl mr-3">
+                        {editingPackage ? '✏️' : '➕'}
+                      </span>
+                      {editingPackage ? 'Editar Paquete' : 'Nuevo Paquete'}
+                    </h3>
+                    <div className="w-24 h-1 bg-gradient-to-r from-green-400 to-blue-400 mx-auto rounded-full"></div>
+                  </div>
+                  
+                  <form onSubmit={handlePackageSubmit} className="space-y-6">
+                    {/* Basic Information */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
+                      <h4 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span className="text-2xl mr-2">📝</span>
+                        Información Básica
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3">🏷️ Nombre del Paquete</label>
+                          <input
+                            type="text"
+                            value={packageForm.nombre}
+                            onChange={(e) => setPackageForm({...packageForm, nombre: e.target.value})}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                            placeholder="Ej: Aventura en Bariloche"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3">📍 Destino</label>
+                          <input
+                            type="text"
+                            value={packageForm.destino}
+                            onChange={(e) => setPackageForm({...packageForm, destino: e.target.value})}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                            placeholder="Ej: Bariloche, Argentina"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-6">
+                        <label className="block text-sm font-bold text-gray-700 mb-3">📄 Descripción</label>
+                        <textarea
+                          value={packageForm.descripcion}
+                          onChange={(e) => setPackageForm({...packageForm, descripcion: e.target.value})}
+                          rows={4}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                          placeholder="Describe la experiencia que ofrece este paquete turístico..."
                           required
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Destino</label>
-                        <input
-                          type="text"
-                          value={packageForm.destino}
-                          onChange={(e) => setPackageForm({...packageForm, destino: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
+                    </div>
+
+                    {/* Pricing & Capacity */}
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 border border-green-200">
+                      <h4 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span className="text-2xl mr-2">💰</span>
+                        Precio y Capacidad
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3">💵 Precio (ARS)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={packageForm.precio}
+                            onChange={(e) => setPackageForm({...packageForm, precio: e.target.value})}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                            placeholder="150000"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3">📅 Duración (días)</label>
+                          <input
+                            type="number"
+                            value={packageForm.duracion_dias}
+                            onChange={(e) => setPackageForm({...packageForm, duracion_dias: e.target.value})}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                            placeholder="7"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3">👥 Cupo Máximo</label>
+                          <input
+                            type="number"
+                            value={packageForm.cupo_maximo}
+                            onChange={(e) => setPackageForm({...packageForm, cupo_maximo: e.target.value})}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                            placeholder="20"
+                            required
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Precio</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={packageForm.precio}
-                          onChange={(e) => setPackageForm({...packageForm, precio: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
+                    </div>
+
+                    {/* Dates & Media */}
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
+                      <h4 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span className="text-2xl mr-2">📸</span>
+                        Fechas y Multimedia
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3">📅 Fecha Inicio</label>
+                          <input
+                            type="date"
+                            value={packageForm.fecha_inicio}
+                            onChange={(e) => setPackageForm({...packageForm, fecha_inicio: e.target.value})}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3">📅 Fecha Fin</label>
+                          <input
+                            type="date"
+                            value={packageForm.fecha_fin}
+                            onChange={(e) => setPackageForm({...packageForm, fecha_fin: e.target.value})}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-bold text-gray-700 mb-3">🏷️ Categoría</label>
+                          <select
+                            value={packageForm.categoria_id}
+                            onChange={(e) => setPackageForm({ ...packageForm, categoria_id: e.target.value })}
+                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                            required
+                          >
+                            <option value="">Seleccionar categoría</option>
+                            {categorias.map((cat) => (
+                              <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Duración (días)</label>
-                        <input
-                          type="number"
-                          value={packageForm.duracion_dias}
-                          onChange={(e) => setPackageForm({...packageForm, duracion_dias: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Cupo Máximo</label>
-                        <input
-                          type="number"
-                          value={packageForm.cupo_maximo}
-                          onChange={(e) => setPackageForm({...packageForm, cupo_maximo: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">URL de Imagen</label>
+                      <div className="mt-6">
+                        <label className="block text-sm font-bold text-gray-700 mb-3">🖼️ URL de Imagen</label>
                         <input
                           type="url"
                           value={packageForm.imagen_url}
                           onChange={(e) => setPackageForm({...packageForm, imagen_url: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 hover:border-gray-300"
+                          placeholder="https://ejemplo.com/imagen.jpg"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
-                        <input
-                          type="date"
-                          value={packageForm.fecha_inicio}
-                          onChange={(e) => setPackageForm({...packageForm, fecha_inicio: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
-                        <input
-                          type="date"
-                          value={packageForm.fecha_fin}
-                          onChange={(e) => setPackageForm({...packageForm, fecha_fin: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
-                        <select
-                          value={packageForm.categoria_id}
-                          onChange={(e) => setPackageForm({ ...packageForm, categoria_id: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        >
-                          <option value="">Seleccionar</option>
-                          {categorias.map((cat) => (
-                            <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                          ))}
-                        </select>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
-                      <textarea
-                        value={packageForm.descripcion}
-                        onChange={(e) => setPackageForm({...packageForm, descripcion: e.target.value})}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-4 pt-4">
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col md:flex-row justify-end space-y-4 md:space-y-0 md:space-x-4 pt-6 border-t-2 border-gray-200">
                       <button
                         type="button"
                         onClick={() => {
                           setShowPackageForm(false);
                           setEditingPackage(null);
                         }}
-                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                        className="px-8 py-4 border-2 border-gray-300 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-300 flex items-center justify-center space-x-2"
                       >
-                        Cancelar
+                        <span>❌</span>
+                        <span>Cancelar</span>
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:from-green-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-300 shadow-xl flex items-center justify-center space-x-2"
                       >
-                        {editingPackage ? 'Actualizar' : 'Crear'}
+                        <span>{editingPackage ? '💾' : '✨'}</span>
+                        <span>{editingPackage ? 'Actualizar' : 'Crear'} Paquete</span>
                       </button>
                     </div>
                   </form>
@@ -853,6 +1003,8 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
+      
+      <Footer />
     </div>
   );
 };
